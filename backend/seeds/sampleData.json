@@ -1,0 +1,62 @@
+{
+    "courseCertifications": [
+      {
+        "title": "Machine Learning Specialization",
+        "provider": "Coursera",
+        "type": "Certification",
+        "date": "2023-06-15",
+        "certificateLink": "https://coursera.org/certificate/ml-specialization",
+        "credentialId": "ABC123XYZ",
+        "description": "Comprehensive machine learning course covering supervised and unsupervised learning, neural networks, and deep learning.",
+        "skillsLearnt": ["Machine Learning", "Neural Networks", "Python", "TensorFlow"]
+      },
+      {
+        "title": "Web Development Bootcamp",
+        "provider": "Udemy",
+        "type": "Course",
+        "date": "2022-11-20",
+        "certificateLink": "https://udemy.com/certificate/web-dev-bootcamp",
+        "credentialId": "UD456789",
+        "description": "Complete web development course covering HTML, CSS, JavaScript, React, Node.js, and MongoDB.",
+        "skillsLearnt": ["HTML", "CSS", "JavaScript", "React", "Node.js", "MongoDB"]
+      }
+    ],
+    "leetCodeProgress": [
+      {
+        "title": "Two Sum",
+        "difficulty": "Easy",
+        "tags": ["Array", "Hash Table"],
+        "status": "Solved",
+        "solutionLink": "https://github.com/username/leetcode-solutions/blob/main/two-sum.js",
+        "dateSolved": "2023-05-10",
+        "notes": "Used hash map approach for O(n) time complexity."
+      },
+      {
+        "title": "Add Two Numbers",
+        "difficulty": "Medium",
+        "tags": ["Linked List", "Math"],
+        "status": "Solved",
+        "solutionLink": "https://github.com/username/leetcode-solutions/blob/main/add-two-numbers.js",
+        "dateSolved": "2023-05-12",
+        "notes": "Implemented using dummy node to handle edge cases."
+      },
+      {
+        "title": "Longest Substring Without Repeating Characters",
+        "difficulty": "Medium",
+        "tags": ["String", "Sliding Window"],
+        "status": "In Progress",
+        "solutionLink": "",
+        "dateSolved": "2023-05-15",
+        "notes": "Working on sliding window approach."
+      },
+      {
+        "title": "Median of Two Sorted Arrays",
+        "difficulty": "Hard",
+        "tags": ["Array", "Binary Search", "Divide and Conquer"],
+        "status": "Attempted",
+        "solutionLink": "",
+        "dateSolved": "2023-05-18",
+        "notes": "Need to understand the binary search approach better."
+      }
+    ]
+  }
