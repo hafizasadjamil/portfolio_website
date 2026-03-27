@@ -91,7 +91,7 @@ exports.deleteLeetCodeProgress = async (req, res) => {
       return res.status(404).json({ msg: 'LeetCode problem not found' });
     }
     
-    await problem.remove();
+    await LeetCodeProgress.findByIdAndDelete(req.params.id);
     
     res.json({ msg: 'LeetCode problem removed' });
   } catch (err) {

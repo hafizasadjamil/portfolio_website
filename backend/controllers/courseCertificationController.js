@@ -98,7 +98,7 @@ exports.deleteCourseCertification = async (req, res) => {
       return res.status(404).json({ msg: 'Course/Certification not found' });
     }
     
-    await course.remove();
+    await CourseCertification.findByIdAndDelete(req.params.id);
     
     res.json({ msg: 'Course/Certification removed' });
   } catch (err) {

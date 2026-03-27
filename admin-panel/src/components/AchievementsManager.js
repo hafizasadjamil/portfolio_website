@@ -16,7 +16,7 @@ const AchievementsManager = () => {
   });
   const [icon, setIcon] = useState(null);
   const [iconPreview, setIconPreview] = useState('');
-  
+
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -36,8 +36,8 @@ const AchievementsManager = () => {
           'x-auth-token': token
         }
       };
-      
-      const res = await axios.get('/api/achievements', config);
+
+      const res = await axios.get('http://localhost:5000/api/achievements', config);
       setAchievements(res.data);
       setLoading(false);
     } catch (err) {
@@ -54,16 +54,16 @@ const AchievementsManager = () => {
           'x-auth-token': token
         }
       };
-      
-      const res = await axios.get(`/api/achievements/${id}`, config);
+
+      const res = await axios.get(`http://localhost:5000/api/achievements/${id}`, config);
       const achievement = res.data;
-      
+
       setFormData({
         title: achievement.title,
         description: achievement.description,
         date: achievement.date.split('T')[0] // Format date for input
       });
-      
+
       setIconPreview(achievement.icon);
       setCurrentAchievement(achievement);
       setShowForm(true);
@@ -106,14 +106,21 @@ const AchievementsManager = () => {
             'x-auth-token': token
           }
         };
-        
-        await axios.delete(`/api/achievements/${id}`, config);
+
+        await axios.delete(`http://localhost:5000/api/achievements/${id}`, config);
         toast.success('Achievement deleted successfully');
         fetchAchievements();
       } catch (err) {
         toast.error('Failed to delete achievement');
       }
     }
+  };
+
+  const getImageUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http') || url.startsWith('blob:')) return url;
+    const cleanUrl = url.startsWith('/') ? url.substring(1) : url;
+    return `http://localhost:5000/${cleanUrl}`;
   };
 
   const handleIconChange = (e) => {
@@ -134,16 +141,16 @@ const AchievementsManager = () => {
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    
+
     const data = new FormData();
     data.append('title', formData.title);
     data.append('description', formData.description);
     data.append('date', formData.date);
-    
+
     if (icon) {
       data.append('icon', icon);
     }
-    
+
     try {
       const token = localStorage.getItem('token');
       const config = {
@@ -152,15 +159,15 @@ const AchievementsManager = () => {
           'Content-Type': 'multipart/form-data'
         }
       };
-      
+
       if (currentAchievement) {
-        await axios.put(`/api/achievements/${currentAchievement._id}`, data, config);
+        await axios.put(`http://localhost:5000/api/achievements/${currentAchievement._id}`, data, config);
         toast.success('Achievement updated successfully');
       } else {
-        await axios.post('/api/achievements', data, config);
+        await axios.post('http://localhost:5000/api/achievements', data, config);
         toast.success('Achievement added successfully');
       }
-      
+
       setShowForm(false);
       fetchAchievements();
       navigate('/achievements');
@@ -196,7 +203,7 @@ const AchievementsManager = () => {
               {currentAchievement ? 'Edit Achievement' : 'Add New Achievement'}
             </h1>
           </div>
-          
+
           <form onSubmit={onSubmit} className="bg-white rounded-lg shadow p-6">
             <div className="mb-4">
               <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="title">
@@ -212,7 +219,7 @@ const AchievementsManager = () => {
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               />
             </div>
-            
+
             <div className="mb-4">
               <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="description">
                 Description
@@ -227,7 +234,7 @@ const AchievementsManager = () => {
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               ></textarea>
             </div>
-            
+
             <div className="mb-4">
               <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="date">
                 Date
@@ -242,7 +249,7 @@ const AchievementsManager = () => {
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               />
             </div>
-            
+
             <div className="mb-4">
               <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="icon">
                 Icon
@@ -254,18 +261,18 @@ const AchievementsManager = () => {
                 accept="image/*"
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               />
-              
+
               {iconPreview && (
                 <div className="mt-4">
-                  <img 
-                    src={iconPreview} 
-                    alt="Preview" 
+                  <img
+                    src={getImageUrl(iconPreview)}
+                    alt="Preview"
                     className="w-16 h-16 object-cover rounded"
                   />
                 </div>
               )}
             </div>
-            
+
             <div className="flex justify-end">
               <button
                 type="button"
@@ -291,7 +298,7 @@ const AchievementsManager = () => {
               <FaPlus className="mr-2" /> Add Achievement
             </button>
           </div>
-          
+
           <div className="bg-white rounded-lg shadow overflow-hidden">
             {achievements.length > 0 ? (
               <table className="min-w-full divide-y divide-gray-200">
@@ -315,7 +322,12 @@ const AchievementsManager = () => {
                   {achievements.map((achievement) => (
                     <tr key={achievement._id}>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{achievement.title}</div>
+                        <div className="flex items-center">
+                          {achievement.icon && (
+                            <img src={getImageUrl(achievement.icon)} alt={achievement.title} className="w-8 h-8 mr-3" />
+                          )}
+                          <div className="text-sm font-medium text-gray-900">{achievement.title}</div>
+                        </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm text-gray-500 max-w-xs truncate">{achievement.description}</div>

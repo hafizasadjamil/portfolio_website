@@ -74,7 +74,7 @@ exports.deleteAchievement = async (req, res) => {
       return res.status(404).json({ msg: 'Achievement not found' });
     }
     
-    await achievement.remove();
+    await Achievement.findByIdAndDelete(req.params.id);
     
     res.json({ msg: 'Achievement removed' });
   } catch (err) {

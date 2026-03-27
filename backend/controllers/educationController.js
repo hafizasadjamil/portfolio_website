@@ -75,7 +75,7 @@ exports.deleteEducation = async (req, res) => {
       return res.status(404).json({ msg: 'Education entry not found' });
     }
     
-    await education.remove();
+    await Education.findByIdAndDelete(req.params.id);
     
     res.json({ msg: 'Education entry removed' });
   } catch (err) {

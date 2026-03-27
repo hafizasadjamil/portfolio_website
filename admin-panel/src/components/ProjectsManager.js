@@ -17,9 +17,9 @@ const ProjectsManager = () => {
     demoUrl: '',
     featured: false
   });
-  const [image, setImage] = useState(null);
-  const [imagePreview, setImagePreview] = useState('');
-  
+  const [images, setImages] = useState([]);
+  const [imagePreviews, setImagePreviews] = useState([]);
+
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -31,6 +31,13 @@ const ProjectsManager = () => {
     }
   }, [id]);
 
+  const getImageUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http') || url.startsWith('blob:')) return url;
+    const cleanUrl = url.startsWith('/') ? url.substring(1) : url;
+    return `http://localhost:5000/${cleanUrl}`;
+  };
+
   const fetchProjects = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -39,8 +46,8 @@ const ProjectsManager = () => {
           'x-auth-token': token
         }
       };
-      
-      const res = await axios.get('/api/projects', config);
+
+      const res = await axios.get('http://localhost:5000/api/projects', config);
       setProjects(res.data);
       setLoading(false);
     } catch (err) {
@@ -57,10 +64,10 @@ const ProjectsManager = () => {
           'x-auth-token': token
         }
       };
-      
-      const res = await axios.get(`/api/projects/${id}`, config);
+
+      const res = await axios.get(`http://localhost:5000/api/projects/${id}`, config);
       const project = res.data;
-      
+
       setFormData({
         title: project.title,
         description: project.description,
@@ -69,8 +76,15 @@ const ProjectsManager = () => {
         demoUrl: project.demoUrl,
         featured: project.featured
       });
-      
-      setImagePreview(project.image);
+
+      if (project.images && project.images.length > 0) {
+        setImagePreviews(project.images);
+      } else if (project.image) {
+        setImagePreviews([project.image]);
+      } else {
+        setImagePreviews([]);
+      }
+
       setCurrentProject(project);
       setShowForm(true);
       setLoading(false);
@@ -90,8 +104,8 @@ const ProjectsManager = () => {
       demoUrl: '',
       featured: false
     });
-    setImage(null);
-    setImagePreview('');
+    setImages([]);
+    setImagePreviews([]);
     setShowForm(true);
   };
 
@@ -105,7 +119,15 @@ const ProjectsManager = () => {
       demoUrl: project.demoUrl,
       featured: project.featured
     });
-    setImagePreview(project.image);
+
+    if (project.images && project.images.length > 0) {
+      setImagePreviews(project.images);
+    } else if (project.image) {
+      setImagePreviews([project.image]);
+    } else {
+      setImagePreviews([]);
+    }
+
     setShowForm(true);
   };
 
@@ -118,8 +140,8 @@ const ProjectsManager = () => {
             'x-auth-token': token
           }
         };
-        
-        await axios.delete(`/api/projects/${id}`, config);
+
+        await axios.delete(`http://localhost:5000/api/projects/${id}`, config);
         toast.success('Project deleted successfully');
         fetchProjects();
       } catch (err) {
@@ -129,11 +151,32 @@ const ProjectsManager = () => {
   };
 
   const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setImage(file);
-      setImagePreview(URL.createObjectURL(file));
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
+      setImages(prevImages => [...prevImages, ...files]);
+      const newPreviews = files.map(file => URL.createObjectURL(file));
+      setImagePreviews(prevPreviews => [...prevPreviews, ...newPreviews]);
     }
+  };
+
+  const removePreview = (index) => {
+    const previewToRemove = imagePreviews[index];
+
+    // If it's a blob URL (newly selected file)
+    if (previewToRemove.startsWith('blob:')) {
+      const blobIndex = imagePreviews.filter((p, i) => i < index && p.startsWith('blob:')).length;
+      const newImages = [...images];
+      newImages.splice(blobIndex, 1);
+      setImages(newImages);
+    } else {
+      // It's an existing image URL from the server
+      // We might want to track these to delete from server later, 
+      // but for now let's just remove from the list that will be sent back
+    }
+
+    const newPreviews = [...imagePreviews];
+    newPreviews.splice(index, 1);
+    setImagePreviews(newPreviews);
   };
 
   const onChange = (e) => {
@@ -146,7 +189,7 @@ const ProjectsManager = () => {
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    
+
     const data = new FormData();
     data.append('title', formData.title);
     data.append('description', formData.description);
@@ -154,11 +197,17 @@ const ProjectsManager = () => {
     data.append('githubUrl', formData.githubUrl);
     data.append('demoUrl', formData.demoUrl);
     data.append('featured', formData.featured);
-    
-    if (image) {
-      data.append('image', image);
+
+    if (images.length > 0) {
+      images.forEach(img => {
+        data.append('images', img);
+      });
     }
-    
+
+    // Also send existing image URLs that weren't removed
+    const existingImages = imagePreviews.filter(p => !p.startsWith('blob:'));
+    data.append('existingImages', JSON.stringify(existingImages));
+
     try {
       const token = localStorage.getItem('token');
       const config = {
@@ -167,15 +216,15 @@ const ProjectsManager = () => {
           'Content-Type': 'multipart/form-data'
         }
       };
-      
+
       if (currentProject) {
-        await axios.put(`/api/projects/${currentProject._id}`, data, config);
+        await axios.put(`http://localhost:5000/api/projects/${currentProject._id}`, data, config);
         toast.success('Project updated successfully');
       } else {
-        await axios.post('/api/projects', data, config);
+        await axios.post('http://localhost:5000/api/projects', data, config);
         toast.success('Project added successfully');
       }
-      
+
       setShowForm(false);
       fetchProjects();
       navigate('/projects');
@@ -211,7 +260,7 @@ const ProjectsManager = () => {
               {currentProject ? 'Edit Project' : 'Add New Project'}
             </h1>
           </div>
-          
+
           <form onSubmit={onSubmit} className="bg-white rounded-lg shadow p-6">
             <div className="mb-4">
               <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="title">
@@ -227,7 +276,7 @@ const ProjectsManager = () => {
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               />
             </div>
-            
+
             <div className="mb-4">
               <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="description">
                 Description
@@ -242,7 +291,7 @@ const ProjectsManager = () => {
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               ></textarea>
             </div>
-            
+
             <div className="mb-4">
               <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="techStack">
                 Tech Stack (comma separated)
@@ -257,7 +306,7 @@ const ProjectsManager = () => {
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               />
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
                 <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="githubUrl">
@@ -272,7 +321,7 @@ const ProjectsManager = () => {
                   className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="demoUrl">
                   Demo URL
@@ -287,7 +336,7 @@ const ProjectsManager = () => {
                 />
               </div>
             </div>
-            
+
             <div className="mb-4">
               <label className="flex items-center">
                 <input
@@ -300,30 +349,42 @@ const ProjectsManager = () => {
                 <span className="ml-2 text-gray-700">Featured Project</span>
               </label>
             </div>
-            
+
             <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="image">
-                Project Image
+              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="images">
+                Project Images (Select multiple)
               </label>
               <input
                 type="file"
-                id="image"
+                id="images"
                 onChange={handleImageChange}
                 accept="image/*"
+                multiple
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               />
-              
-              {imagePreview && (
-                <div className="mt-4">
-                  <img 
-                    src={imagePreview} 
-                    alt="Preview" 
-                    className="w-32 h-32 object-cover rounded"
-                  />
+
+              {imagePreviews.length > 0 && (
+                <div className="mt-4 flex flex-wrap gap-4">
+                  {imagePreviews.map((preview, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={getImageUrl(preview)}
+                        alt={`Preview ${index + 1}`}
+                        className="w-32 h-32 object-cover rounded shadow-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removePreview(index)}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <FaTimes size={12} />
+                      </button>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
-            
+
             <div className="flex justify-end">
               <button
                 type="button"
@@ -349,7 +410,7 @@ const ProjectsManager = () => {
               <FaPlus className="mr-2" /> Add Project
             </button>
           </div>
-          
+
           <div className="bg-white rounded-lg shadow overflow-hidden">
             {projects.length > 0 ? (
               <table className="min-w-full divide-y divide-gray-200">

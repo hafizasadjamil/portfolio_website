@@ -26,23 +26,29 @@ exports.sendMessage = async (req, res) => {
 
     await newMessage.save();
 
-    // Send email notification
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
-      },
-    });
+    // Send email notification only if credentials are provided
+    if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+      const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS,
+        },
+      });
 
-    const mailOptions = {
-      from: `"${name}" <${email}>`,
-      to: process.env.EMAIL_USER,
-      subject: `Portfolio Contact: ${subject}`,
-      text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
-    };
+      const mailOptions = {
+        from: `"${name}" <${email}>`,
+        to: process.env.EMAIL_USER,
+        subject: `Portfolio Contact: ${subject}`,
+        text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
+      };
 
-    await transporter.sendMail(mailOptions);
+      try {
+        await transporter.sendMail(mailOptions);
+      } catch (mailErr) {
+        console.error('Email notification failed, but message saved to DB:', mailErr.message);
+      }
+    }
 
     res.json({ msg: 'Message sent successfully' });
   } catch (err) {
@@ -66,17 +72,17 @@ exports.getAllMessages = async (req, res) => {
 exports.markMessageAsRead = async (req, res) => {
   try {
     let message = await Message.findById(req.params.id);
-    
+
     if (!message) {
       return res.status(404).json({ msg: 'Message not found' });
     }
-    
+
     message = await Message.findByIdAndUpdate(
       req.params.id,
       { $set: { read: true } },
       { new: true }
     );
-    
+
     res.json(message);
   } catch (err) {
     console.error(err.message);
@@ -88,13 +94,13 @@ exports.markMessageAsRead = async (req, res) => {
 exports.deleteMessage = async (req, res) => {
   try {
     const message = await Message.findById(req.params.id);
-    
+
     if (!message) {
       return res.status(404).json({ msg: 'Message not found' });
     }
-    
-    await message.remove();
-    
+
+    await Message.findByIdAndDelete(req.params.id);
+
     res.json({ msg: 'Message removed' });
   } catch (err) {
     console.error(err.message);

@@ -15,7 +15,8 @@ const ProfileManager = () => {
       twitter: '',
       email: '',
       phone: ''
-    }
+    },
+    bookingUrl: ''
   });
   const [profileImage, setProfileImage] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
@@ -33,7 +34,7 @@ const ProfileManager = () => {
           'x-auth-token': token
         }
       };
-      
+
       const res = await axios.get('/api/profile', config);
       setProfile(res.data);
       setImagePreview(res.data.profileImage);
@@ -54,7 +55,7 @@ const ProfileManager = () => {
 
   const onChange = (e) => {
     const { name, value } = e.target;
-    
+
     if (name.startsWith('socialLinks.')) {
       const field = name.split('.')[1];
       setProfile({
@@ -74,18 +75,19 @@ const ProfileManager = () => {
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    
+
     const data = new FormData();
     data.append('name', profile.name);
     data.append('tagline', profile.tagline);
     data.append('bio', profile.bio);
     data.append('cvUrl', profile.cvUrl);
     data.append('socialLinks', JSON.stringify(profile.socialLinks));
-    
+    data.append('bookingUrl', profile.bookingUrl);
+
     if (profileImage) {
       data.append('profileImage', profileImage);
     }
-    
+
     try {
       const token = localStorage.getItem('token');
       const config = {
@@ -94,7 +96,7 @@ const ProfileManager = () => {
           'Content-Type': 'multipart/form-data'
         }
       };
-      
+
       await axios.put('/api/profile', data, config);
       toast.success('Profile updated successfully');
     } catch (err) {
@@ -113,7 +115,7 @@ const ProfileManager = () => {
   return (
     <div className="p-6">
       <h1 className="text-2xl font-bold mb-6">Profile Settings</h1>
-      
+
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex flex-col md:flex-row gap-8">
           <div className="md:w-1/3">
@@ -123,9 +125,9 @@ const ProfileManager = () => {
               </label>
               <div className="flex flex-col items-center">
                 {imagePreview ? (
-                  <img 
-                    src={imagePreview} 
-                    alt="Profile" 
+                  <img
+                    src={imagePreview}
+                    alt="Profile"
                     className="w-48 h-48 object-cover rounded-full mb-4"
                   />
                 ) : (
@@ -143,7 +145,7 @@ const ProfileManager = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="md:w-2/3">
             <form onSubmit={onSubmit}>
               <div className="mb-4">
@@ -160,7 +162,7 @@ const ProfileManager = () => {
                   className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 />
               </div>
-              
+
               <div className="mb-4">
                 <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="tagline">
                   Tagline
@@ -175,7 +177,7 @@ const ProfileManager = () => {
                   className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 />
               </div>
-              
+
               <div className="mb-4">
                 <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="bio">
                   Bio
@@ -190,7 +192,7 @@ const ProfileManager = () => {
                   className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 ></textarea>
               </div>
-              
+
               <div className="mb-4">
                 <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="cvUrl">
                   CV URL
@@ -204,9 +206,24 @@ const ProfileManager = () => {
                   className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 />
               </div>
-              
+
+              <div className="mb-6">
+                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="bookingUrl">
+                  Call Booking URL (Calendly, etc.)
+                </label>
+                <input
+                  type="text"
+                  id="bookingUrl"
+                  name="bookingUrl"
+                  value={profile.bookingUrl}
+                  onChange={onChange}
+                  placeholder="https://calendly.com/your-name"
+                  className="shadow appearance-none border border-blue-200 rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:border-blue-500"
+                />
+              </div>
+
               <h3 className="text-lg font-semibold mb-4">Social Links</h3>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>
                   <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="linkedin">
@@ -221,7 +238,7 @@ const ProfileManager = () => {
                     className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="github">
                     <FaGithub className="inline mr-2" /> GitHub
@@ -235,7 +252,7 @@ const ProfileManager = () => {
                     className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="twitter">
                     <FaTwitter className="inline mr-2" /> Twitter
@@ -249,7 +266,7 @@ const ProfileManager = () => {
                     className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
                     <FaEnvelope className="inline mr-2" /> Email
@@ -263,7 +280,7 @@ const ProfileManager = () => {
                     className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                   />
                 </div>
-                
+
                 <div>
                   <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="phone">
                     <FaPhone className="inline mr-2" /> Phone
@@ -278,7 +295,7 @@ const ProfileManager = () => {
                   />
                 </div>
               </div>
-              
+
               <div className="flex justify-end">
                 <button
                   type="submit"

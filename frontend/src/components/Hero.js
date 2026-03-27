@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-scroll';
+import { Link as RouterLink } from 'react-router-dom';
 import Particles from 'react-tsparticles';
 import { loadFull } from 'tsparticles';
-import { FaDownload, FaBriefcase, FaEnvelope } from 'react-icons/fa';
-import axios from 'axios';
+import { FaDownload, FaBriefcase, FaEnvelope, FaCalendarAlt } from 'react-icons/fa';
+import api, { getImageUrl } from '../services/api';
 
 const Hero = () => {
   const [profile, setProfile] = useState({
@@ -21,7 +22,7 @@ const Hero = () => {
     const fetchProfile = async () => {
       try {
         setLoading(true);
-        const res = await axios.get('http://localhost:5000/api/profile');
+        const res = await api.get('/profile');
         console.log('Profile data received:', res.data);
         setProfile(res.data);
         setError(null);
@@ -35,6 +36,20 @@ const Hero = () => {
 
     fetchProfile();
   }, []);
+
+  const [text, setText] = useState('');
+  const fullText = "Muhammad Asad Jamil";
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    if (index < fullText.length) {
+      const timeout = setTimeout(() => {
+        setText(prev => prev + fullText[index]);
+        setIndex(prev => prev + 1);
+      }, 100);
+      return () => clearTimeout(timeout);
+    }
+  }, [index]);
 
   const particlesInit = async (main) => {
     await loadFull(main);
@@ -107,78 +122,84 @@ const Hero = () => {
   }
 
   return (
-    <section id="home" className="min-h-screen flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-gray-900 to-gray-800">
+    <section id="home" className="min-h-screen flex items-center justify-center relative overflow-hidden bg-gray-950 hero-gradient">
       <Particles
         id="tsparticles"
         init={particlesInit}
         options={particlesOptions}
         className="absolute inset-0"
       />
-      
+
+      {/* Background Decorative Blobs */}
+      <div className="absolute top-0 -left-4 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
+      <div className="absolute top-0 -right-4 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
+      <div className="absolute -bottom-8 left-20 w-72 h-72 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-4000"></div>
+
       <div className="container mx-auto px-4 z-10 text-center">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1 }}
+          className="max-w-4xl mx-auto"
         >
-          <motion.h1
-            className="text-4xl md:text-6xl font-bold mb-4 text-white"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.8 }}
           >
-            {profile.name}
-          </motion.h1>
-          
+            <h2 className="text-blue-400 font-semibold tracking-widest uppercase mb-4 text-sm md:text-base">Welcome to my portfolio</h2>
+            <h1 className="text-5xl md:text-8xl font-black mb-6 text-white tracking-tighter leading-none min-h-[1.2em]">
+              Hi, I'm <span className="text-gradient">{text}</span>
+              <span className="animate-pulse text-blue-500">|</span>
+            </h1>
+          </motion.div>
+
           <motion.p
-            className="text-xl md:text-2xl text-blue-400 mb-8"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.5 }}
+            className="text-xl md:text-3xl text-gray-300 mb-10 font-light max-w-2xl mx-auto leading-relaxed"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6, duration: 0.8 }}
           >
             {profile.tagline}
           </motion.p>
-          
+
           <motion.div
-            className="flex flex-wrap justify-center gap-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.6, duration: 0.5 }}
+            className="flex flex-wrap justify-center gap-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8, duration: 0.8 }}
           >
             <Link
               to="projects"
               spy={true}
               smooth={true}
               duration={500}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center gap-2"
+              className="px-8 py-4 bg-blue-600 text-white rounded-full hover:bg-blue-700 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-blue-600/20 font-bold flex items-center gap-2 cursor-pointer"
             >
-              <FaBriefcase /> View Projects
+              <FaBriefcase /> View My Work
             </Link>
-            
+
             {profile.cvUrl && (
               <a
                 href={profile.cvUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-6 py-3 bg-transparent border-2 border-blue-600 text-blue-400 rounded-lg hover:bg-blue-900/20 transition flex items-center gap-2"
+                className="px-8 py-4 bg-white/5 backdrop-blur-sm border border-white/10 text-white rounded-full hover:bg-white/10 hover:scale-105 active:scale-95 transition-all font-bold flex items-center gap-2"
               >
-                <FaDownload /> Download CV
+                <FaDownload /> Download Resume
               </a>
             )}
-            
-            <Link
-              to="contact"
-              spy={true}
-              smooth={true}
-              duration={500}
-              className="px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition flex items-center gap-2"
+
+            <RouterLink
+              to="/booking"
+              className="px-8 py-4 bg-transparent border border-gray-700 text-gray-300 rounded-full hover:border-gray-500 hover:text-white transition-all font-bold flex items-center gap-2 cursor-pointer"
             >
-              <FaEnvelope /> Contact Me
-            </Link>
+              <FaCalendarAlt /> Book a Call
+            </RouterLink>
           </motion.div>
         </motion.div>
       </div>
-      
+
       <motion.div
         className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
         animate={{ y: [0, 10, 0] }}

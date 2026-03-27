@@ -44,6 +44,10 @@ const ProfileSchema = new mongoose.Schema({
       default: '',
     },
   },
+  bookingUrl: {
+    type: String,
+    default: '',
+  },
   createdAt: {
     type: Date,
     default: Date.now,
@@ -61,7 +65,7 @@ exports.getProfile = async (req, res) => {
   try {
     // There should be only one profile document
     let profile = await Profile.findOne();
-    
+
     // If no profile exists, create a default one
     if (!profile) {
       profile = new Profile({
@@ -69,10 +73,10 @@ exports.getProfile = async (req, res) => {
         tagline: 'AI & Software Engineer | Building Intelligent and Scalable Systems',
         bio: 'I am a Computer Science graduate passionate about Artificial Intelligence and intelligent systems. I specialize in Python, machine learning frameworks, and full-stack development. I love solving real-world problems with code, from building AI-powered applications to deploying production-ready systems.',
       });
-      
+
       await profile.save();
     }
-    
+
     res.json(profile);
   } catch (err) {
     console.error(err.message);
@@ -83,10 +87,10 @@ exports.getProfile = async (req, res) => {
 // Update profile data
 exports.updateProfile = async (req, res) => {
   try {
-    const { name, tagline, bio, cvUrl, socialLinks } = req.body;
-    
+    const { name, tagline, bio, cvUrl, socialLinks, bookingUrl } = req.body;
+
     let profile = await Profile.findOne();
-    
+
     // If no profile exists, create one
     if (!profile) {
       profile = new Profile({
@@ -95,6 +99,7 @@ exports.updateProfile = async (req, res) => {
         bio,
         cvUrl,
         socialLinks: JSON.parse(socialLinks),
+        bookingUrl,
       });
     } else {
       const profileFields = {
@@ -103,20 +108,21 @@ exports.updateProfile = async (req, res) => {
         bio,
         cvUrl,
         socialLinks: JSON.parse(socialLinks),
+        bookingUrl,
         updatedAt: Date.now()
       };
-      
+
       if (req.file) {
         profileFields.profileImage = `/uploads/${req.file.filename}`;
       }
-      
+
       profile = await Profile.findOneAndUpdate(
         {},
         { $set: profileFields },
         { new: true, upsert: true }
       );
     }
-    
+
     res.json(profile);
   } catch (err) {
     console.error(err.message);

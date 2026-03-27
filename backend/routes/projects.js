@@ -36,12 +36,12 @@ router.get('/:id', getProjectById);
 // @route   POST api/projects
 // @desc    Create a project
 // @access  Private
-router.post('/', [auth, upload.single('image')], createProject);
+router.post('/', [auth, upload.array('images', 10)], createProject);
 
 // @route   PUT api/projects/:id
 // @desc    Update a project
 // @access  Private
-router.put('/:id', [auth, upload.single('image')], updateProject);
+router.put('/:id', [auth, upload.array('images', 10)], updateProject);
 
 // @route   DELETE api/projects/:id
 // @desc    Delete a project

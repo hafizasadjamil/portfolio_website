@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useParams, Link } from 'react-router-dom';
-import axios from 'axios';
+import api, { getImageUrl } from '../services/api';
 import { FaArrowLeft } from 'react-icons/fa';
+import Markdown from 'markdown-to-jsx';
 
 const BlogPost = () => {
   const { slug } = useParams();
@@ -12,7 +13,7 @@ const BlogPost = () => {
   useEffect(() => {
     const fetchBlog = async () => {
       try {
-        const res = await axios.get(`/api/blog/${slug}`);
+        const res = await api.get(`/blog/${slug}`);
         setBlog(res.data);
         setLoading(false);
       } catch (err) {
@@ -60,14 +61,14 @@ const BlogPost = () => {
         >
           <FaArrowLeft className="mr-2" /> Back to Blog
         </Link>
-        
+
         <motion.article
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
           <h1 className="text-3xl md:text-4xl font-bold mb-4 text-white">{blog.title}</h1>
-          
+
           <div className="flex items-center text-gray-400 mb-8">
             <span>{new Date(blog.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</span>
             {blog.tags.length > 0 && (
@@ -83,19 +84,19 @@ const BlogPost = () => {
               </>
             )}
           </div>
-          
+
           {blog.featuredImage && (
             <div className="mb-8 rounded-xl overflow-hidden">
               <img
-                src={blog.featuredImage}
+                src={getImageUrl(blog.featuredImage)}
                 alt={blog.title}
                 className="w-full h-auto object-cover"
               />
             </div>
           )}
-          
+
           <div className="prose prose-invert max-w-none">
-            <div dangerouslySetInnerHTML={{ __html: blog.content }} />
+            <Markdown>{blog.content}</Markdown>
           </div>
         </motion.article>
       </div>

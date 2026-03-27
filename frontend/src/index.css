@@ -30,6 +30,17 @@ html {
   background: #2563eb;
 }
 
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
 /* Animation classes */
 .btn {
   @apply px-6 py-3 rounded-lg font-medium transition;
@@ -81,4 +92,40 @@ html {
 
 .badge-primary {
   @apply bg-blue-900/30 text-blue-400;
+}
+
+/* Next Level Styling */
+.glass-card {
+  @apply bg-gray-900/40 backdrop-blur-md border border-white/10 shadow-2xl;
+}
+
+.text-gradient {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-500 to-indigo-500;
+}
+
+.glow-blue {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+}
+
+.glow-purple {
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+  100% { transform: translateY(0px); }
+}
+
+.section-title {
+  @apply text-4xl md:text-5xl font-bold text-center mb-16 text-white tracking-tight;
+}
+
+.hero-gradient {
+  background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.15), transparent),
+              radial-gradient(circle at bottom left, rgba(168, 85, 247, 0.15), transparent);
 }

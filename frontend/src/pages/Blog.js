@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import api, { getImageUrl } from '../services/api';
 import { Link } from 'react-router-dom';
 
 const Blog = () => {
@@ -10,7 +10,7 @@ const Blog = () => {
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
-        const res = await axios.get('/api/blog');
+        const res = await api.get('/blog');
         setBlogs(res.data);
         setLoading(false);
       } catch (err) {
@@ -34,7 +34,7 @@ const Blog = () => {
     <div className="pt-24 pb-20 bg-gray-900 min-h-screen">
       <div className="container mx-auto px-4">
         <h1 className="text-3xl md:text-4xl font-bold mb-16 text-white text-center">Blog</h1>
-        
+
         {blogs.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {blogs.map((blog, index) => (
@@ -50,7 +50,7 @@ const Blog = () => {
                 <div className="h-48 overflow-hidden">
                   {blog.featuredImage ? (
                     <img
-                      src={blog.featuredImage}
+                      src={getImageUrl(blog.featuredImage)}
                       alt={blog.title}
                       className="w-full h-full object-cover"
                     />
@@ -60,16 +60,16 @@ const Blog = () => {
                     </div>
                   )}
                 </div>
-                
+
                 <div className="p-6">
                   <h3 className="text-xl font-bold mb-2 text-white">{blog.title}</h3>
                   <p className="text-gray-400 mb-4">{blog.excerpt}</p>
-                  
+
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-gray-500">
                       {new Date(blog.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
                     </span>
-                    
+
                     <Link
                       to={`/blog/${blog.slug}`}
                       className="text-blue-400 hover:text-blue-300 transition"

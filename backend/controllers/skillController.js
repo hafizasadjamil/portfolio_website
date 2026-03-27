@@ -87,7 +87,7 @@ exports.deleteSkill = async (req, res) => {
       return res.status(404).json({ msg: 'Skill not found' });
     }
     
-    await skill.remove();
+    await Skill.findByIdAndDelete(req.params.id);
     
     res.json({ msg: 'Skill removed' });
   } catch (err) {

@@ -3,11 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { FaPlus, FaEdit, FaTrash, FaArrowLeft, FaSave, FaTimes, FaEye } from 'react-icons/fa';
+import Markdown from 'markdown-to-jsx';
 
 const BlogManager = () => {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
   const [currentBlog, setCurrentBlog] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
@@ -19,7 +21,7 @@ const BlogManager = () => {
   });
   const [featuredImage, setFeaturedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
-  
+
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -39,8 +41,8 @@ const BlogManager = () => {
           'x-auth-token': token
         }
       };
-      
-      const res = await axios.get('/api/blog/admin', config);
+
+      const res = await axios.get('http://localhost:5000/api/blog/admin', config);
       setBlogs(res.data);
       setLoading(false);
     } catch (err) {
@@ -57,10 +59,10 @@ const BlogManager = () => {
           'x-auth-token': token
         }
       };
-      
-      const res = await axios.get(`/api/blog/${id}`, config);
+
+      const res = await axios.get(`http://localhost:5000/api/blog/${id}`, config);
       const blog = res.data;
-      
+
       setFormData({
         title: blog.title,
         slug: blog.slug,
@@ -69,7 +71,7 @@ const BlogManager = () => {
         tags: blog.tags.join(', '),
         published: blog.published
       });
-      
+
       setImagePreview(blog.featuredImage);
       setCurrentBlog(blog);
       setShowForm(true);
@@ -118,14 +120,21 @@ const BlogManager = () => {
             'x-auth-token': token
           }
         };
-        
-        await axios.delete(`/api/blog/${id}`, config);
+
+        await axios.delete(`http://localhost:5000/api/blog/${id}`, config);
         toast.success('Blog post deleted successfully');
         fetchBlogs();
       } catch (err) {
         toast.error('Failed to delete blog post');
       }
     }
+  };
+
+  const getImageUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http') || url.startsWith('blob:')) return url;
+    const cleanUrl = url.startsWith('/') ? url.substring(1) : url;
+    return `http://localhost:5000/${cleanUrl}`;
   };
 
   const handleImageChange = (e) => {
@@ -162,7 +171,7 @@ const BlogManager = () => {
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    
+
     const data = new FormData();
     data.append('title', formData.title);
     data.append('slug', formData.slug);
@@ -170,11 +179,11 @@ const BlogManager = () => {
     data.append('excerpt', formData.excerpt);
     data.append('tags', formData.tags);
     data.append('published', formData.published);
-    
+
     if (featuredImage) {
       data.append('featuredImage', featuredImage);
     }
-    
+
     try {
       const token = localStorage.getItem('token');
       const config = {
@@ -183,15 +192,15 @@ const BlogManager = () => {
           'Content-Type': 'multipart/form-data'
         }
       };
-      
+
       if (currentBlog) {
-        await axios.put(`/api/blog/${currentBlog._id}`, data, config);
+        await axios.put(`http://localhost:5000/api/blog/${currentBlog._id}`, data, config);
         toast.success('Blog post updated successfully');
       } else {
-        await axios.post('/api/blog', data, config);
+        await axios.post('http://localhost:5000/api/blog', data, config);
         toast.success('Blog post added successfully');
       }
-      
+
       setShowForm(false);
       fetchBlogs();
       navigate('/blog');
@@ -215,8 +224,8 @@ const BlogManager = () => {
           'x-auth-token': token
         }
       };
-      
-      await axios.put(`/api/blog/${id}`, { published: !published }, config);
+
+      await axios.put(`http://localhost:5000/api/blog/${id}`, { published: !published }, config);
       toast.success(`Blog post ${!published ? 'published' : 'unpublished'} successfully`);
       fetchBlogs();
     } catch (err) {
@@ -244,7 +253,7 @@ const BlogManager = () => {
               {currentBlog ? 'Edit Blog Post' : 'Add New Blog Post'}
             </h1>
           </div>
-          
+
           <form onSubmit={onSubmit} className="bg-white rounded-lg shadow p-6">
             <div className="mb-4">
               <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="title">
@@ -260,7 +269,7 @@ const BlogManager = () => {
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               />
             </div>
-            
+
             <div className="mb-4">
               <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="slug">
                 Slug
@@ -275,7 +284,7 @@ const BlogManager = () => {
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               />
             </div>
-            
+
             <div className="mb-4">
               <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="excerpt">
                 Excerpt
@@ -290,22 +299,37 @@ const BlogManager = () => {
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               ></textarea>
             </div>
-            
+
             <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="content">
-                Content (Markdown supported)
-              </label>
-              <textarea
-                id="content"
-                name="content"
-                value={formData.content}
-                onChange={onChange}
-                required
-                rows="10"
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              ></textarea>
+              <div className="flex justify-between items-center mb-2">
+                <label className="block text-gray-700 text-sm font-bold" htmlFor="content">
+                  Content (Markdown supported)
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowPreview(!showPreview)}
+                  className="text-blue-600 text-sm flex items-center gap-1 hover:underline"
+                >
+                  <FaEye /> {showPreview ? 'Hide Preview' : 'Show Preview'}
+                </button>
+              </div>
+              {showPreview ? (
+                <div className="w-full bg-gray-50 border border-gray-300 rounded px-3 py-2 min-h-[250px] prose prose-sm max-w-none overflow-y-auto">
+                  <Markdown>{formData.content}</Markdown>
+                </div>
+              ) : (
+                <textarea
+                  id="content"
+                  name="content"
+                  value={formData.content}
+                  onChange={onChange}
+                  required
+                  rows="10"
+                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                ></textarea>
+              )}
             </div>
-            
+
             <div className="mb-4">
               <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="tags">
                 Tags (comma separated)
@@ -319,7 +343,7 @@ const BlogManager = () => {
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               />
             </div>
-            
+
             <div className="mb-4">
               <label className="flex items-center">
                 <input
@@ -332,7 +356,7 @@ const BlogManager = () => {
                 <span className="ml-2 text-gray-700">Published</span>
               </label>
             </div>
-            
+
             <div className="mb-4">
               <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="featuredImage">
                 Featured Image
@@ -344,18 +368,18 @@ const BlogManager = () => {
                 accept="image/*"
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               />
-              
+
               {imagePreview && (
                 <div className="mt-4">
-                  <img 
-                    src={imagePreview} 
-                    alt="Preview" 
+                  <img
+                    src={getImageUrl(imagePreview)}
+                    alt="Preview"
                     className="w-64 h-64 object-cover rounded"
                   />
                 </div>
               )}
             </div>
-            
+
             <div className="flex justify-end">
               <button
                 type="button"
@@ -381,7 +405,7 @@ const BlogManager = () => {
               <FaPlus className="mr-2" /> Add Blog Post
             </button>
           </div>
-          
+
           <div className="bg-white rounded-lg shadow overflow-hidden">
             {blogs.length > 0 ? (
               <table className="min-w-full divide-y divide-gray-200">
@@ -408,9 +432,8 @@ const BlogManager = () => {
                         <div className="text-sm font-medium text-gray-900">{blog.title}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          blog.published ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
-                        }`}>
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${blog.published ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                          }`}>
                           {blog.published ? 'Published' : 'Draft'}
                         </span>
                       </td>

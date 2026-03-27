@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import api from '../services/api';
 import { FaFilter, FaSearch, FaGithub, FaCalendar, FaCheck, FaClock, FaTimes } from 'react-icons/fa';
 
 const LeetCodeProgress = () => {
@@ -17,8 +17,8 @@ const LeetCodeProgress = () => {
     const fetchData = async () => {
       try {
         const [problemsRes, statsRes] = await Promise.all([
-          axios.get('/api/leetcode-progress'),
-          axios.get('/api/leetcode-progress/stats')
+          api.get('/leetcode-progress'),
+          api.get('/leetcode-progress/stats')
         ]);
         
         setProblems(problemsRes.data);

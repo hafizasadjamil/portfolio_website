@@ -17,7 +17,7 @@ const SkillsManager = () => {
   });
   const [icon, setIcon] = useState(null);
   const [iconPreview, setIconPreview] = useState('');
-  
+
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -38,7 +38,7 @@ const SkillsManager = () => {
         }
       };
       
-      const res = await axios.get('/api/skills', config);
+      const res = await axios.get('http://localhost:5000/api/skills', config);
       setSkills(res.data);
       setLoading(false);
     } catch (err) {
@@ -56,7 +56,7 @@ const SkillsManager = () => {
         }
       };
       
-      const res = await axios.get(`/api/skills/${id}`, config);
+      const res = await axios.get(`http://localhost:5000/api/skills/${id}`, config);
       const skill = res.data;
       
       setFormData({
@@ -111,13 +111,21 @@ const SkillsManager = () => {
           }
         };
         
-        await axios.delete(`/api/skills/${id}`, config);
+        await axios.delete(`http://localhost:5000/api/skills/${id}`, config);
         toast.success('Skill deleted successfully');
         fetchSkills();
       } catch (err) {
-        toast.error('Failed to delete skill');
+        console.error('Delete error:', err.response || err);
+        toast.error(err.response?.data?.msg || 'Failed to delete skill');
       }
     }
+  };
+
+  const getImageUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http') || url.startsWith('blob:')) return url;
+    const cleanUrl = url.startsWith('/') ? url.substring(1) : url;
+    return `http://localhost:5000/${cleanUrl}`;
   };
 
   const handleIconChange = (e) => {
@@ -138,17 +146,17 @@ const SkillsManager = () => {
 
   const onSubmit = async (e) => {
     e.preventDefault();
-    
+
     const data = new FormData();
     data.append('name', formData.name);
     data.append('category', formData.category);
     data.append('level', formData.level);
     data.append('description', formData.description);
-    
+
     if (icon) {
       data.append('icon', icon);
     }
-    
+
     try {
       const token = localStorage.getItem('token');
       const config = {
@@ -157,15 +165,15 @@ const SkillsManager = () => {
           'Content-Type': 'multipart/form-data'
         }
       };
-      
+
       if (currentSkill) {
-        await axios.put(`/api/skills/${currentSkill._id}`, data, config);
+        await axios.put(`http://localhost:5000/api/skills/${currentSkill._id}`, data, config);
         toast.success('Skill updated successfully');
       } else {
-        await axios.post('/api/skills', data, config);
+        await axios.post('http://localhost:5000/api/skills', data, config);
         toast.success('Skill added successfully');
       }
-      
+
       setShowForm(false);
       fetchSkills();
       navigate('/skills');
@@ -201,7 +209,7 @@ const SkillsManager = () => {
               {currentSkill ? 'Edit Skill' : 'Add New Skill'}
             </h1>
           </div>
-          
+
           <form onSubmit={onSubmit} className="bg-white rounded-lg shadow p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
@@ -218,7 +226,7 @@ const SkillsManager = () => {
                   className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 />
               </div>
-              
+
               <div>
                 <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="category">
                   Category
@@ -234,7 +242,7 @@ const SkillsManager = () => {
                 />
               </div>
             </div>
-            
+
             <div className="mb-4">
               <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="level">
                 Level
@@ -252,7 +260,7 @@ const SkillsManager = () => {
                 <option value="Expert">Expert</option>
               </select>
             </div>
-            
+
             <div className="mb-4">
               <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="description">
                 Description
@@ -266,7 +274,7 @@ const SkillsManager = () => {
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               ></textarea>
             </div>
-            
+
             <div className="mb-4">
               <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="icon">
                 Icon
@@ -278,18 +286,18 @@ const SkillsManager = () => {
                 accept="image/*"
                 className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
               />
-              
+
               {iconPreview && (
                 <div className="mt-4">
-                  <img 
-                    src={iconPreview} 
-                    alt="Preview" 
+                  <img
+                    src={getImageUrl(iconPreview)}
+                    alt="Preview"
                     className="w-16 h-16 object-cover rounded"
                   />
                 </div>
               )}
             </div>
-            
+
             <div className="flex justify-end">
               <button
                 type="button"
@@ -315,7 +323,7 @@ const SkillsManager = () => {
               <FaPlus className="mr-2" /> Add Skill
             </button>
           </div>
-          
+
           <div className="bg-white rounded-lg shadow overflow-hidden">
             {skills.length > 0 ? (
               <table className="min-w-full divide-y divide-gray-200">
@@ -341,7 +349,7 @@ const SkillsManager = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           {skill.icon && (
-                            <img src={skill.icon} alt={skill.name} className="w-8 h-8 mr-3" />
+                            <img src={getImageUrl(skill.icon)} alt={skill.name} className="w-8 h-8 mr-3" />
                           )}
                           <div className="text-sm font-medium text-gray-900">{skill.name}</div>
                         </div>
@@ -350,12 +358,11 @@ const SkillsManager = () => {
                         <div className="text-sm text-gray-500">{skill.category}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          skill.level === 'Beginner' ? 'bg-green-100 text-green-800' :
+                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${skill.level === 'Beginner' ? 'bg-green-100 text-green-800' :
                           skill.level === 'Intermediate' ? 'bg-blue-100 text-blue-800' :
-                          skill.level === 'Advanced' ? 'bg-purple-100 text-purple-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
+                            skill.level === 'Advanced' ? 'bg-purple-100 text-purple-800' :
+                              'bg-red-100 text-red-800'
+                          }`}>
                           {skill.level}
                         </span>
                       </td>

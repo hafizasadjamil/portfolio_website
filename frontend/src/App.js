@@ -5,6 +5,7 @@ import Footer from './components/Footer';
 import Home from './pages/Home';
 import Blog from './pages/Blog';
 import BlogPost from './pages/BlogPost';
+import Booking from './pages/Booking';
 import CoursesCertifications from './components/CoursesCertifications';
 import LeetCodeProgress from './components/LeetCodeProgress';
 // import MinimalTest from './components/MinimalTest';
@@ -25,6 +26,7 @@ function App() {
         <main className="flex-grow">
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/booking" element={<Booking />} />
             <Route path="/courses-certifications" element={<CoursesCertifications />} />
             <Route path="/leetcode-progress" element={<LeetCodeProgress />} />
             <Route path="/blog" element={<Blog />} />
