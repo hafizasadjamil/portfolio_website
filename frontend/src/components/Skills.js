@@ -13,10 +13,11 @@ const Skills = () => {
       try {
         setLoading(true);
         const res = await api.get('/skills');
-        setSkills(res.data);
+        const skillsData = Array.isArray(res.data) ? res.data : [];
+        setSkills(skillsData);
 
         // Extract unique categories
-        const uniqueCategories = [...new Set(res.data.map(skill => skill.category))];
+        const uniqueCategories = [...new Set(skillsData.map(skill => skill.category))];
         setCategories(uniqueCategories);
         setError(null);
       } catch (err) {

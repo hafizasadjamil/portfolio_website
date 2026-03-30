@@ -13,7 +13,7 @@ const CoursesCertifications = () => {
       try {
         setLoading(true);
         const res = await api.get('/course-certifications');
-        setCourses(res.data);
+        setCourses(Array.isArray(res.data) ? res.data : []);
         setError(null);
       } catch (err) {
         console.error('Failed to fetch courses/certifications:', err);

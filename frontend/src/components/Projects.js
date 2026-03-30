@@ -13,7 +13,7 @@ const Projects = () => {
       try {
         setLoading(true);
         const res = await api.get('/projects');
-        setProjects(res.data);
+        setProjects(Array.isArray(res.data) ? res.data : []);
         setError(null);
       } catch (err) {
         console.error('Failed to fetch projects:', err);

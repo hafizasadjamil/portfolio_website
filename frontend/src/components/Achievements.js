@@ -13,7 +13,7 @@ const Achievements = () => {
       try {
         setLoading(true);
         const res = await api.get('/achievements');
-        setAchievements(res.data);
+        setAchievements(Array.isArray(res.data) ? res.data : []);
         setError(null);
       } catch (err) {
         console.error('Failed to fetch achievements:', err);

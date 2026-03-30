@@ -11,7 +11,7 @@ const Journey = () => {
     const fetchJourney = async () => {
       try {
         const res = await api.get('/journey');
-        setTimelineEvents(res.data);
+        setTimelineEvents(Array.isArray(res.data) ? res.data : []);
         setLoading(false);
       } catch (err) {
         console.error('Error fetching journey:', err);

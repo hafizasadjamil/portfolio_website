@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { FaGithub, FaLinkedin, FaTwitter, FaEnvelope } from 'react-icons/fa';
-import axios from 'axios';
+import api from '../services/api';
 
 const Footer = () => {
   const [profile, setProfile] = useState(null);
@@ -10,7 +10,7 @@ const Footer = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/profile');
+        const res = await api.get('/profile');
         setProfile(res.data);
       } catch (err) {
         console.error('Failed to fetch profile in footer:', err);

@@ -11,7 +11,7 @@ const Demo = () => {
     const fetchDemos = async () => {
       try {
         const res = await api.get('/demos');
-        setDemos(res.data);
+        setDemos(Array.isArray(res.data) ? res.data : []);
         setLoading(false);
       } catch (err) {
         console.error('Error fetching demos:', err);

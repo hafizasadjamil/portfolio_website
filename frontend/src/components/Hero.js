@@ -23,8 +23,9 @@ const Hero = () => {
       try {
         setLoading(true);
         const res = await api.get('/profile');
-        console.log('Profile data received:', res.data);
-        setProfile(res.data);
+        if (res.data && typeof res.data === 'object') {
+          setProfile(res.data);
+        }
         setError(null);
       } catch (err) {
         console.error('Failed to fetch profile:', err);
