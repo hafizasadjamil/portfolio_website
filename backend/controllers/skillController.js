@@ -25,16 +25,24 @@ exports.getSkillsByCategory = async (req, res) => {
 // Create a skill
 exports.createSkill = async (req, res) => {
   try {
-    const { name, category, level, description } = req.body;
-    
+    const { name, category, level, description, highlight, iconUrl } = req.body;
+
+    let icon = '';
+    if (req.file) {
+      icon = `/uploads/${req.file.filename}`;
+    } else if (iconUrl) {
+      icon = iconUrl;
+    }
+
     const newSkill = new Skill({
       name,
       category,
-      icon: req.file ? `/uploads/${req.file.filename}` : '',
+      icon,
       level,
-      description
+      description,
+      highlight: highlight === 'true' || highlight === true
     });
-    
+
     const skill = await newSkill.save();
     res.json(skill);
   } catch (err) {
@@ -46,31 +54,34 @@ exports.createSkill = async (req, res) => {
 // Update a skill
 exports.updateSkill = async (req, res) => {
   try {
-    const { name, category, level, description } = req.body;
-    
+    const { name, category, level, description, highlight, iconUrl } = req.body;
+
     let skill = await Skill.findById(req.params.id);
-    
+
     if (!skill) {
       return res.status(404).json({ msg: 'Skill not found' });
     }
-    
+
     const skillFields = {
       name,
       category,
       level,
-      description
+      description,
+      highlight: highlight === 'true' || highlight === true
     };
-    
+
     if (req.file) {
       skillFields.icon = `/uploads/${req.file.filename}`;
+    } else if (iconUrl) {
+      skillFields.icon = iconUrl;
     }
-    
+
     skill = await Skill.findByIdAndUpdate(
       req.params.id,
       { $set: skillFields },
       { new: true }
     );
-    
+
     res.json(skill);
   } catch (err) {
     console.error(err.message);
@@ -82,13 +93,13 @@ exports.updateSkill = async (req, res) => {
 exports.deleteSkill = async (req, res) => {
   try {
     const skill = await Skill.findById(req.params.id);
-    
+
     if (!skill) {
       return res.status(404).json({ msg: 'Skill not found' });
     }
-    
+
     await Skill.findByIdAndDelete(req.params.id);
-    
+
     res.json({ msg: 'Skill removed' });
   } catch (err) {
     console.error(err.message);

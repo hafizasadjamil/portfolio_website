@@ -14,6 +14,9 @@ import Messages from '../components/Messages';
 import ProfileManager from '../components/ProfileManager';
 import CoursesCertificationsManager from '../components/CoursesCertificationsManager';
 import LeetCodeProgressManager from '../components/LeetCodeProgressManager';
+import DemosManager from '../components/DemosManager';
+import JourneyManager from '../components/JourneyManager';
+import JobScraperManager from '../components/JobScraperManager';
 
 
 function App() {
@@ -42,43 +45,49 @@ function App() {
 
   return (
     <Router>
-      <div className="flex h-screen bg-gray-100">
-        <ToastContainer position="top-right" autoClose={3000} />
-        
+      <div className="flex h-screen bg-[#050505] overflow-hidden">
+        <ToastContainer position="top-right" autoClose={3000} theme="dark" />
+
         {!isAuthenticated ? (
           <Login setAuth={setAuth} />
         ) : (
           <>
             <Sidebar />
-            <div className="flex-1 overflow-auto">
-              <Routes>
-                <Route path="/" element={<Navigate to="/dashboard" />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/projects" element={<ProjectsManager />} />
-                <Route path="/projects/new" element={<ProjectsManager />} />
-                <Route path="/projects/:id" element={<ProjectsManager />} />
-                <Route path="/skills" element={<SkillsManager />} />
-                <Route path="/skills/new" element={<SkillsManager />} />
-                <Route path="/skills/:id" element={<SkillsManager />} />
-                <Route path="/achievements" element={<AchievementsManager />} />
-                <Route path="/achievements/new" element={<AchievementsManager />} />
-                <Route path="/achievements/:id" element={<AchievementsManager />} />
-                <Route path="/education" element={<EducationManager />} />
-                <Route path="/education/new" element={<EducationManager />} />
-                <Route path="/education/:id" element={<EducationManager />} />
-                <Route path="/blog" element={<BlogManager />} />
-                <Route path="/blog/new" element={<BlogManager />} />
-                <Route path="/blog/:id" element={<BlogManager />} />
-                <Route path="/messages" element={<Messages />} />
-                <Route path="/profile" element={<ProfileManager />} />
-                <Route path="*" element={<Navigate to="/dashboard" />} />
-                <Route path="/course-certifications" element={<CoursesCertificationsManager />} />
-                <Route path="/course-certifications/new" element={<CoursesCertificationsManager />} />
-                <Route path="/course-certifications/:id" element={<CoursesCertificationsManager />} />
-                <Route path="/leetcode-progress" element={<LeetCodeProgressManager />} />
-                <Route path="/leetcode-progress/new" element={<LeetCodeProgressManager />} />
-                <Route path="/leetcode-progress/:id" element={<LeetCodeProgressManager />} />
-              </Routes>
+            <div className="flex-1 overflow-auto relative">
+              {/* Main Content Area */}
+              <div className="min-h-full">
+                <Routes>
+                  <Route path="/" element={<Navigate to="/dashboard" />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/projects" element={<ProjectsManager />} />
+                  <Route path="/projects/new" element={<ProjectsManager />} />
+                  <Route path="/projects/:id" element={<ProjectsManager />} />
+                  <Route path="/skills" element={<SkillsManager />} />
+                  <Route path="/skills/new" element={<SkillsManager />} />
+                  <Route path="/skills/:id" element={<SkillsManager />} />
+                  <Route path="/achievements" element={<AchievementsManager />} />
+                  <Route path="/achievements/new" element={<AchievementsManager />} />
+                  <Route path="/achievements/:id" element={<AchievementsManager />} />
+                  <Route path="/education" element={<EducationManager />} />
+                  <Route path="/education/new" element={<EducationManager />} />
+                  <Route path="/education/:id" element={<EducationManager />} />
+                  <Route path="/blog" element={<BlogManager />} />
+                  <Route path="/blog/new" element={<BlogManager />} />
+                  <Route path="/blog/:id" element={<BlogManager />} />
+                  <Route path="/messages" element={<Messages />} />
+                  <Route path="/profile" element={<ProfileManager />} />
+                  <Route path="*" element={<Navigate to="/dashboard" />} />
+                  <Route path="/course-certifications" element={<CoursesCertificationsManager />} />
+                  <Route path="/course-certifications/new" element={<CoursesCertificationsManager />} />
+                  <Route path="/course-certifications/:id" element={<CoursesCertificationsManager />} />
+                  <Route path="/leetcode-progress" element={<LeetCodeProgressManager />} />
+                  <Route path="/leetcode-progress/new" element={<LeetCodeProgressManager />} />
+                  <Route path="/leetcode-progress/:id" element={<LeetCodeProgressManager />} />
+                  <Route path="/demos" element={<DemosManager />} />
+                  <Route path="/journey" element={<JourneyManager />} />
+                  <Route path="/job-scraper" element={<JobScraperManager />} />
+                </Routes>
+              </div>
             </div>
           </>
         )}

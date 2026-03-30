@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { FaProjectDiagram, FaTools, FaTrophy, FaGraduationCap, FaBlog, FaEnvelope, FaUsers, FaChartLine } from 'react-icons/fa';
+import { FaProjectDiagram, FaTools, FaTrophy, FaGraduationCap, FaBlog, FaEnvelope, FaPlayCircle, FaCode, FaRoute } from 'react-icons/fa';
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -11,8 +11,12 @@ const Dashboard = () => {
     education: 0,
     blogPosts: 0,
     messages: 0,
+    demos: 0,
+    journey: 0,
     unreadMessages: 0
   });
+
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -24,12 +28,16 @@ const Dashboard = () => {
           }
         };
 
-        const projectsRes = await axios.get('/api/projects', config);
-        const skillsRes = await axios.get('/api/skills', config);
-        const achievementsRes = await axios.get('/api/achievements', config);
-        const educationRes = await axios.get('/api/education', config);
-        const blogRes = await axios.get('/api/blog/admin', config);
-        const messagesRes = await axios.get('/api/contact', config);
+        const [projectsRes, skillsRes, achievementsRes, educationRes, blogRes, messagesRes, demosRes, journeyRes] = await Promise.all([
+          axios.get(`${API_URL}/api/projects`, config),
+          axios.get(`${API_URL}/api/skills`, config),
+          axios.get(`${API_URL}/api/achievements`, config),
+          axios.get(`${API_URL}/api/education`, config),
+          axios.get(`${API_URL}/api/blog/admin`, config),
+          axios.get(`${API_URL}/api/contact`, config),
+          axios.get(`${API_URL}/api/demos`, config),
+          axios.get(`${API_URL}/api/journey`, config)
+        ]);
 
         const unreadMessages = messagesRes.data.filter(msg => !msg.read).length;
 
@@ -40,6 +48,8 @@ const Dashboard = () => {
           education: educationRes.data.length,
           blogPosts: blogRes.data.length,
           messages: messagesRes.data.length,
+          demos: demosRes.data.length,
+          journey: journeyRes.data.length,
           unreadMessages
         });
       } catch (err) {
@@ -48,98 +58,115 @@ const Dashboard = () => {
     };
 
     fetchStats();
-  }, []);
+  }, [API_URL]);
 
   const dashboardCards = [
     {
       title: 'Projects',
       count: stats.projects,
-      icon: <FaProjectDiagram className="text-2xl" />,
-      color: 'bg-blue-500',
+      icon: <FaProjectDiagram />,
+      color: 'from-blue-600 to-blue-400',
       link: '/projects'
     },
     {
       title: 'Skills',
       count: stats.skills,
-      icon: <FaTools className="text-2xl" />,
-      color: 'bg-green-500',
+      icon: <FaTools />,
+      color: 'from-green-600 to-green-400',
       link: '/skills'
+    },
+    {
+      title: 'The Journey',
+      count: stats.journey,
+      icon: <FaRoute />,
+      color: 'from-cyan-600 to-cyan-400',
+      link: '/journey'
+    },
+    {
+      title: 'Demos & Bots',
+      count: stats.demos,
+      icon: <FaPlayCircle />,
+      color: 'from-purple-600 to-purple-400',
+      link: '/demos'
     },
     {
       title: 'Achievements',
       count: stats.achievements,
-      icon: <FaTrophy className="text-2xl" />,
-      color: 'bg-yellow-500',
+      icon: <FaTrophy />,
+      color: 'from-yellow-600 to-yellow-400',
       link: '/achievements'
-    },
-    {
-      title: 'Education',
-      count: stats.education,
-      icon: <FaGraduationCap className="text-2xl" />,
-      color: 'bg-purple-500',
-      link: '/education'
     },
     {
       title: 'Blog Posts',
       count: stats.blogPosts,
-      icon: <FaBlog className="text-2xl" />,
-      color: 'bg-indigo-500',
+      icon: <FaBlog />,
+      color: 'from-indigo-600 to-indigo-400',
       link: '/blog'
     },
     {
       title: 'Messages',
       count: stats.messages,
-      icon: <FaEnvelope className="text-2xl" />,
-      color: 'bg-red-500',
+      icon: <FaEnvelope />,
+      color: 'from-red-600 to-red-400',
       link: '/messages',
       badge: stats.unreadMessages > 0 ? stats.unreadMessages : null
     }
   ];
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+    <div className="p-10 bg-[#050505] min-h-screen">
+      <div className="flex justify-between items-center mb-12">
+        <div>
+          <h2 className="text-4xl font-black text-white tracking-tighter">Command <span className="text-blue-500">Center</span></h2>
+          <p className="text-gray-500 font-bold uppercase tracking-widest text-xs mt-2">Overview of your digital ecosystem</p>
+        </div>
+        <div className="flex items-center gap-4">
+          <div className="bg-white/5 border border-white/10 px-6 py-3 rounded-2xl">
+            <span className="text-gray-400 text-[10px] font-black uppercase tracking-widest block">System Status</span>
+            <span className="text-green-500 text-xs font-black uppercase tracking-widest flex items-center gap-2">
+              <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+              Operational
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {dashboardCards.map((card, index) => (
-          <Link 
-            key={index} 
+          <Link
+            key={index}
             to={card.link}
-            className="bg-white rounded-lg shadow p-6 hover:shadow-md transition-shadow"
+            className="group relative"
           >
-            <div className="flex items-center">
-              <div className={`${card.color} w-12 h-12 rounded-full flex items-center justify-center text-white mr-4`}>
-                {card.icon}
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-700">{card.title}</h3>
-                <div className="flex items-center">
-                  <span className="text-2xl font-bold text-gray-900">{card.count}</span>
-                  {card.badge && (
-                    <span className="ml-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                      {card.badge}
-                    </span>
-                  )}
+            <div className={`absolute inset-0 bg-gradient-to-br ${card.color} opacity-0 group-hover:opacity-10 blur-2xl rounded-[2.5rem] transition-all duration-500`}></div>
+            <div className="relative bg-[#0d0d0f] border border-white/5 p-10 rounded-[2.5rem] group-hover:border-white/10 transition-all duration-500 h-full overflow-hidden">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 group-hover:bg-white/10 transition-all duration-500"></div>
+
+              <div className="flex justify-between items-start mb-8 relative z-10">
+                <div className={`w-14 h-14 bg-gradient-to-br ${card.color} rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg transition-transform group-hover:scale-110 duration-500`}>
+                  {card.icon}
                 </div>
+                {card.badge && (
+                  <span className="bg-red-500 text-white text-[10px] font-black px-3 py-1 rounded-full animate-bounce">
+                    {card.badge} NEW
+                  </span>
+                )}
+              </div>
+
+              <div className="relative z-10">
+                <h3 className="text-gray-500 text-[10px] font-black uppercase tracking-[0.2em] mb-1">{card.title}</h3>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-5xl font-black text-white tracking-tighter">{card.count}</span>
+                  <span className="text-gray-600 text-sm font-bold uppercase tracking-widest">Entries</span>
+                </div>
+              </div>
+
+              <div className="mt-8 flex items-center text-blue-500 text-[10px] font-black uppercase tracking-widest group-hover:gap-3 transition-all">
+                Manage Section <span>→</span>
               </div>
             </div>
           </Link>
         ))}
-      </div>
-      
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Link to="/projects/new" className="bg-blue-500 text-white py-2 px-4 rounded text-center hover:bg-blue-600 transition">
-            Add New Project
-          </Link>
-          <Link to="/blog/new" className="bg-indigo-500 text-white py-2 px-4 rounded text-center hover:bg-indigo-600 transition">
-            Write Blog Post
-          </Link>
-          <Link to="/profile" className="bg-green-500 text-white py-2 px-4 rounded text-center hover:bg-green-600 transition">
-            Update Profile
-          </Link>
-        </div>
       </div>
     </div>
   );

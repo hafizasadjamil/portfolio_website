@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { FaPlus, FaEdit, FaTrash, FaArrowLeft, FaSave, FaTimes } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaArrowLeft, FaSave, FaTimes, FaCloudUploadAlt, FaGraduationCap, FaAward, FaCalendarAlt, FaLink, FaIdBadge } from 'react-icons/fa';
+import { motion } from 'framer-motion';
 
 const CoursesCertificationsManager = () => {
   const [courses, setCourses] = useState([]);
@@ -24,6 +25,7 @@ const CoursesCertificationsManager = () => {
   
   const { id } = useParams();
   const navigate = useNavigate();
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
   useEffect(() => {
     if (id) {
@@ -32,6 +34,13 @@ const CoursesCertificationsManager = () => {
       fetchCourses();
     }
   }, [id]);
+
+  const getImageUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http') || url.startsWith('blob:')) return url;
+    const cleanUrl = url.startsWith('/') ? url.substring(1) : url;
+    return `${API_URL}/${cleanUrl}`;
+  };
 
   const fetchCourses = async () => {
     try {
@@ -42,7 +51,7 @@ const CoursesCertificationsManager = () => {
         }
       };
       
-      const res = await axios.get('/api/course-certifications', config);
+      const res = await axios.get(`${API_URL}/api/course-certifications`, config);
       setCourses(res.data);
       setLoading(false);
     } catch (err) {
@@ -60,7 +69,7 @@ const CoursesCertificationsManager = () => {
         }
       };
       
-      const res = await axios.get(`/api/course-certifications/${id}`, config);
+      const res = await axios.get(`${API_URL}/api/course-certifications/${id}`, config);
       const course = res.data;
       
       setFormData({
@@ -118,7 +127,7 @@ const CoursesCertificationsManager = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this course/certification?')) {
+    if (window.confirm('Are you sure you want to delete this?')) {
       try {
         const token = localStorage.getItem('token');
         const config = {
@@ -127,11 +136,11 @@ const CoursesCertificationsManager = () => {
           }
         };
         
-        await axios.delete(`/api/course-certifications/${id}`, config);
-        toast.success('Course/Certification deleted successfully');
+        await axios.delete(`${API_URL}/api/course-certifications/${id}`, config);
+        toast.success('Deleted successfully');
         fetchCourses();
       } catch (err) {
-        toast.error('Failed to delete course/certification');
+        toast.error('Failed to delete');
       }
     }
   };
@@ -145,11 +154,7 @@ const CoursesCertificationsManager = () => {
   };
 
   const onChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const onSubmit = async (e) => {
@@ -164,11 +169,10 @@ const CoursesCertificationsManager = () => {
     data.append('credentialId', formData.credentialId);
     data.append('description', formData.description);
     data.append('skillsLearnt', formData.skillsLearnt);
-    
     if (badgeImage) {
       data.append('badgeImage', badgeImage);
     }
-    
+
     try {
       const token = localStorage.getItem('token');
       const config = {
@@ -177,20 +181,20 @@ const CoursesCertificationsManager = () => {
           'Content-Type': 'multipart/form-data'
         }
       };
-      
+
       if (currentCourse) {
-        await axios.put(`/api/course-certifications/${currentCourse._id}`, data, config);
-        toast.success('Course/Certification updated successfully');
+        await axios.put(`${API_URL}/api/course-certifications/${currentCourse._id}`, data, config);
+        toast.success('Updated successfully');
       } else {
-        await axios.post('/api/course-certifications', data, config);
-        toast.success('Course/Certification added successfully');
+        await axios.post(`${API_URL}/api/course-certifications`, data, config);
+        toast.success('Added successfully');
       }
       
       setShowForm(false);
       fetchCourses();
       navigate('/course-certifications');
     } catch (err) {
-      toast.error('Failed to save course/certification');
+      toast.error('Failed to save');
     }
   };
 
@@ -203,268 +207,245 @@ const CoursesCertificationsManager = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-xl">Loading courses/certifications...</div>
+      <div className="flex items-center justify-center h-full bg-[#050505]">
+        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="p-6">
+    <div className="p-10 bg-[#050505] min-h-screen">
       {showForm ? (
-        <div>
-          <div className="flex items-center mb-6">
-            <button onClick={cancelForm} className="mr-4 text-gray-600 hover:text-gray-900">
-              <FaArrowLeft />
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-4xl mx-auto"
+        >
+          <div className="flex items-center justify-between mb-12">
+            <div className="flex items-center gap-6">
+              <button onClick={cancelForm} className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-white/10 transition-all">
+                <FaArrowLeft />
+              </button>
+              <div>
+                <h1 className="text-3xl font-black text-white tracking-tighter">
+                  {currentCourse ? 'Edit' : 'Add'} <span className="text-blue-500">Credential</span>
+                </h1>
+                <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px] mt-1">Academic & Professional Records</p>
+              </div>
+            </div>
+            <button 
+              onClick={onSubmit}
+              className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 flex items-center gap-3"
+            >
+              <FaSave /> Save Record
             </button>
-            <h1 className="text-2xl font-bold">
-              {currentCourse ? 'Edit Course/Certification' : 'Add New Course/Certification'}
-            </h1>
           </div>
-          
-          <form onSubmit={onSubmit} className="bg-white rounded-lg shadow p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="title">
-                  Title
-                </label>
-                <input
-                  type="text"
-                  id="title"
-                  name="title"
-                  value={formData.title}
-                  onChange={onChange}
-                  required
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="provider">
-                  Provider
-                </label>
-                <input
-                  type="text"
-                  id="provider"
-                  name="provider"
-                  value={formData.provider}
-                  onChange={onChange}
-                  required
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="type">
-                  Type
-                </label>
-                <select
-                  id="type"
-                  name="type"
-                  value={formData.type}
-                  onChange={onChange}
-                  required
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                >
-                  <option value="Course">Course</option>
-                  <option value="Certification">Certification</option>
-                </select>
-              </div>
-              
-              <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="date">
-                  Date
-                </label>
-                <input
-                  type="date"
-                  id="date"
-                  name="date"
-                  value={formData.date}
-                  onChange={onChange}
-                  required
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                />
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="certificateLink">
-                  Certificate Link
-                </label>
-                <input
-                  type="text"
-                  id="certificateLink"
-                  name="certificateLink"
-                  value={formData.certificateLink}
-                  onChange={onChange}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="credentialId">
-                  Credential ID
-                </label>
-                <input
-                  type="text"
-                  id="credentialId"
-                  name="credentialId"
-                  value={formData.credentialId}
-                  onChange={onChange}
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                />
-              </div>
-            </div>
-            
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="description">
-                Description
-              </label>
-              <textarea
-                id="description"
-                name="description"
-                value={formData.description}
-                onChange={onChange}
-                rows="3"
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              ></textarea>
-            </div>
-            
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="skillsLearnt">
-                Skills Learnt (comma separated)
-              </label>
-              <input
-                type="text"
-                id="skillsLearnt"
-                name="skillsLearnt"
-                value={formData.skillsLearnt}
-                onChange={onChange}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              />
-            </div>
-            
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="badgeImage">
-                Badge Image
-              </label>
-              <input
-                type="file"
-                id="badgeImage"
-                onChange={handleImageChange}
-                accept="image/*"
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              />
-              
-              {imagePreview && (
-                <div className="mt-4">
-                  <img 
-                    src={imagePreview} 
-                    alt="Preview" 
-                    className="w-32 h-32 object-cover rounded"
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-8">
+              <div className="bg-[#0d0d0f] border border-white/5 p-8 rounded-[2rem] space-y-6">
+                <div>
+                  <label className="block text-gray-400 text-[10px] font-black uppercase tracking-widest mb-3">Program Title</label>
+                  <input
+                    type="text"
+                    name="title"
+                    value={formData.title}
+                    onChange={onChange}
+                    placeholder="e.g. Machine Learning Specialization"
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-blue-500 transition-all font-bold"
                   />
                 </div>
-              )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-gray-400 text-[10px] font-black uppercase tracking-widest mb-3">Provider / Institution</label>
+                    <div className="relative">
+                      <FaGraduationCap className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-600" />
+                      <input
+                        type="text"
+                        name="provider"
+                        value={formData.provider}
+                        onChange={onChange}
+                        placeholder="e.g. Coursera, DeepLearning.AI"
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl pl-14 pr-6 py-4 text-white focus:outline-none focus:border-blue-500 transition-all text-sm font-bold"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-gray-400 text-[10px] font-black uppercase tracking-widest mb-3">Credential Type</label>
+                    <div className="relative">
+                      <FaAward className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-600" />
+                      <select
+                        name="type"
+                        value={formData.type}
+                        onChange={onChange}
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl pl-14 pr-6 py-4 text-white focus:outline-none focus:border-blue-500 transition-all text-sm font-bold appearance-none"
+                      >
+                        <option value="Course">Course</option>
+                        <option value="Certification">Certification</option>
+                        <option value="Degree">Degree</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-gray-400 text-[10px] font-black uppercase tracking-widest mb-3">Completion Date</label>
+                    <div className="relative">
+                      <FaCalendarAlt className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-600" />
+                      <input
+                        type="date"
+                        name="date"
+                        value={formData.date}
+                        onChange={onChange}
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl pl-14 pr-6 py-4 text-white focus:outline-none focus:border-blue-500 transition-all text-sm font-bold"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-gray-400 text-[10px] font-black uppercase tracking-widest mb-3">Credential ID</label>
+                    <div className="relative">
+                      <FaIdBadge className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-600" />
+                      <input
+                        type="text"
+                        name="credentialId"
+                        value={formData.credentialId}
+                        onChange={onChange}
+                        placeholder="e.g. ABC-123-XYZ"
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl pl-14 pr-6 py-4 text-white focus:outline-none focus:border-blue-500 transition-all text-sm font-bold"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-gray-400 text-[10px] font-black uppercase tracking-widest mb-3">Verification Link</label>
+                  <div className="relative">
+                    <FaLink className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-600" />
+                    <input
+                      type="text"
+                      name="certificateLink"
+                      value={formData.certificateLink}
+                      onChange={onChange}
+                      placeholder="https://verify.credential.net/..."
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl pl-14 pr-6 py-4 text-white focus:outline-none focus:border-blue-500 transition-all text-sm font-bold"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-gray-400 text-[10px] font-black uppercase tracking-widest mb-3">Description</label>
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={onChange}
+                    rows="4"
+                    placeholder="Briefly explain what you learned..."
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-blue-500 transition-all font-medium leading-relaxed"
+                  ></textarea>
+                </div>
+              </div>
             </div>
-            
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={cancelForm}
-                className="bg-gray-500 text-white py-2 px-4 rounded mr-2 hover:bg-gray-600 transition"
-              >
-                <FaTimes className="inline mr-2" /> Cancel
-              </button>
-              <button
-                type="submit"
-                className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition"
-              >
-                <FaSave className="inline mr-2" /> Save
-              </button>
+
+            <div className="space-y-8">
+              <div className="bg-[#0d0d0f] border border-white/5 p-8 rounded-[2rem] space-y-6">
+                <label className="block text-gray-400 text-[10px] font-black uppercase tracking-widest mb-3 text-center">Badge / Logo</label>
+                <div className="flex flex-col items-center gap-6">
+                  <div className="w-32 h-32 rounded-[1.5rem] bg-white/5 border-2 border-dashed border-white/10 flex items-center justify-center overflow-hidden group hover:border-blue-500/50 transition-all">
+                    {imagePreview ? (
+                      <img src={getImageUrl(imagePreview)} alt="Badge" className="w-20 h-20 object-contain" />
+                    ) : (
+                      <FaAward className="text-4xl text-gray-700" />
+                    )}
+                  </div>
+                  <label className="w-full px-6 py-3 bg-white/5 hover:bg-blue-600 text-white border border-white/10 hover:border-blue-500 rounded-xl flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest cursor-pointer transition-all">
+                    <FaCloudUploadAlt size={16} /> Choose Image
+                    <input type="file" onChange={handleImageChange} className="hidden" />
+                  </label>
+                </div>
+              </div>
+
+              <div className="bg-[#0d0d0f] border border-white/5 p-8 rounded-[2rem]">
+                <label className="block text-gray-400 text-[10px] font-black uppercase tracking-widest mb-4">Skills Learnt</label>
+                <input
+                  type="text"
+                  name="skillsLearnt"
+                  value={formData.skillsLearnt}
+                  onChange={onChange}
+                  placeholder="e.g. Deep Learning, NLP, Python"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-blue-500 transition-all text-sm font-bold mb-4"
+                />
+                <div className="flex flex-wrap gap-2">
+                  {formData.skillsLearnt.split(',').map((skill, i) => skill.trim() && (
+                    <span key={i} className="bg-blue-600/10 text-blue-400 text-[9px] px-3 py-1.5 rounded-lg border border-blue-500/20 font-black uppercase tracking-widest">
+                      {skill.trim()}
+                    </span>
+                  ))}
+                </div>
+              </div>
             </div>
-          </form>
-        </div>
+          </div>
+        </motion.div>
       ) : (
-        <div>
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold">Courses & Certifications</h1>
-            <button onClick={handleAdd} className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition flex items-center">
-              <FaPlus className="mr-2" /> Add Course/Certification
+        <div className="max-w-7xl mx-auto">
+          <div className="flex justify-between items-center mb-16">
+            <div>
+              <h1 className="text-4xl font-black text-white tracking-tighter">Academic <span className="text-blue-500">Vault</span></h1>
+              <p className="text-gray-500 font-bold uppercase tracking-widest text-xs mt-2">Manage your certifications and courses</p>
+            </div>
+            <button 
+              onClick={handleAdd}
+              className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 flex items-center gap-3"
+            >
+              <FaPlus /> Add Credential
             </button>
           </div>
-          
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            {courses.length > 0 ? (
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Title
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Provider
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Type
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Date
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {courses.map((course) => (
-                    <tr key={course._id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{course.title}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">{course.provider}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          course.type === 'Course' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
-                        }`}>
-                          {course.type}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">
-                          {new Date(course.date).toLocaleDateString()}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button
-                          onClick={() => handleEdit(course)}
-                          className="text-blue-600 hover:text-blue-900 mr-3"
-                        >
-                          <FaEdit />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(course._id)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          <FaTrash />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-gray-500 mb-4">No courses/certifications found</p>
-                <button onClick={handleAdd} className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition">
-                  Add Your First Course/Certification
-                </button>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {courses.map((course) => (
+              <div key={course._id} className="bg-[#0d0d0f] border border-white/5 rounded-[2.5rem] p-10 group hover:border-blue-500/30 transition-all duration-500 flex flex-col h-full relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 group-hover:bg-blue-500/10 transition-all duration-700"></div>
+                
+                <div className="flex justify-between items-start mb-8 relative z-10">
+                  <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 group-hover:scale-110 transition-transform duration-500">
+                    {course.badgeImage ? (
+                      <img src={getImageUrl(course.badgeImage)} alt={course.title} className="w-10 h-10 object-contain" />
+                    ) : (
+                      <FaAward className="text-blue-500 text-2xl" />
+                    )}
+                  </div>
+                  <span className={`text-[8px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-lg border ${
+                    course.type === 'Certification' ? 'text-purple-400 border-purple-500/30 bg-purple-500/10' :
+                    course.type === 'Degree' ? 'text-blue-400 border-blue-500/30 bg-blue-500/10' :
+                    'text-gray-400 border-white/10 bg-white/5'
+                  }`}>
+                    {course.type}
+                  </span>
+                </div>
+                
+                <div className="flex-grow relative z-10">
+                  <h3 className="text-2xl font-black text-white mb-2 group-hover:text-blue-500 transition-colors tracking-tight leading-none">{course.title}</h3>
+                  <p className="text-blue-500/60 text-[10px] font-black uppercase tracking-widest mb-4">{course.provider}</p>
+                  <p className="text-gray-500 text-sm font-medium line-clamp-2 leading-relaxed">{course.description}</p>
+                </div>
+
+                <div className="flex gap-4 pt-8 mt-10 border-t border-white/5 relative z-10">
+                  <button 
+                    onClick={() => handleEdit(course)}
+                    className="flex-1 bg-white/5 hover:bg-blue-600 text-white font-black uppercase tracking-widest text-[10px] py-4 rounded-2xl transition-all flex items-center justify-center gap-2"
+                  >
+                    <FaEdit /> Edit
+                  </button>
+                  <button 
+                    onClick={() => handleDelete(course._id)}
+                    className="w-14 h-14 bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white rounded-2xl transition-all flex items-center justify-center"
+                  >
+                    <FaTrash size={14} />
+                  </button>
+                </div>
               </div>
-            )}
+            ))}
           </div>
         </div>
       )}

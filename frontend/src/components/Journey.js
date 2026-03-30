@@ -1,111 +1,109 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { FaCode, FaRobot, FaBriefcase, FaMicrophone, FaRocket } from 'react-icons/fa';
+import { FaCode, FaRobot, FaBriefcase, FaMicrophone, FaRocket, FaGraduationCap, FaCertificate, FaTrophy } from 'react-icons/fa';
+import api from '../services/api';
 
 const Journey = () => {
-  const timelineEvents = [
-    {
-      date: '2022',
-      title: 'Started Learning ML',
-      description: 'Began my journey into Machine Learning & AI fundamentals, mastering core concepts and frameworks.',
-      icon: <FaCode />,
-      color: 'from-blue-500 to-cyan-400'
-    },
-    {
-      date: '2023',
-      title: 'Advanced AI Projects',
-      description: 'Continued deep diving into ML, building initial AI projects and exploring real-world applications.',
-      icon: <FaRobot />,
-      color: 'from-indigo-500 to-blue-500'
-    },
-    {
-      date: '2024 - 2025',
-      title: 'Freelance AI Development',
-      description: 'Worked on diverse freelance AI projects specializing in LLMs, FastAPI, and complex automation systems.',
-      icon: <FaBriefcase />,
-      color: 'from-purple-500 to-indigo-500'
-    },
-    {
-      date: '2024 - 2025',
-      title: 'Smart AI CRM',
-      description: 'Architected and built a Smart AI CRM with advanced voice agent capabilities and end-to-end automation.',
-      icon: <FaMicrophone />,
-      color: 'from-blue-600 to-indigo-600'
-    },
-    {
-      date: '2025',
-      title: 'FairHire AI Job Portal',
-      description: 'Developed FairHire, an AI-driven job portal featuring intelligent resume parsing and automated matching.',
-      icon: <FaRocket />,
-      color: 'from-green-500 to-emerald-400'
-    },
-    {
-      date: '2025',
-      title: 'Professional AI Developer',
-      description: 'Worked as an AI Developer at ITGenics and Nextbridge, successfully deploying real-world AI systems at scale.',
-      icon: <FaBriefcase />,
-      color: 'from-indigo-600 to-purple-600'
-    },
-    {
-      date: 'Present',
-      title: 'AI Automation Engineer',
-      description: 'Building production-level AI systems including voice agents, chatbots, and advanced automation workflows.',
-      icon: <FaRobot />,
-      color: 'from-blue-500 to-purple-500'
+  const [timelineEvents, setTimelineEvents] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchJourney = async () => {
+      try {
+        const res = await api.get('/journey');
+        setTimelineEvents(res.data);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching journey:', err);
+        setLoading(false);
+      }
+    };
+    fetchJourney();
+  }, []);
+
+  const getIcon = (iconName) => {
+    switch (iconName) {
+      case 'FaCode': return <FaCode />;
+      case 'FaRobot': return <FaRobot />;
+      case 'FaBriefcase': return <FaBriefcase />;
+      case 'FaMicrophone': return <FaMicrophone />;
+      case 'FaRocket': return <FaRocket />;
+      case 'FaGraduationCap': return <FaGraduationCap />;
+      case 'FaCertificate': return <FaCertificate />;
+      case 'FaTrophy': return <FaTrophy />;
+      default: return <FaRocket />;
     }
-  ];
+  };
+
+  if (loading) return null;
+  if (timelineEvents.length === 0) return null;
 
   return (
-    <section id="journey" className="py-24 bg-gray-950 relative overflow-hidden">
+    <section id="journey" className="py-32 bg-[#050505] relative overflow-hidden">
       {/* Decorative background elements */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[1000px] bg-blue-600/5 rounded-full blur-[150px] pointer-events-none"></div>
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-purple-600/5 rounded-full blur-[120px] pointer-events-none"></div>
 
       <div className="container mx-auto px-4 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-20"
+          className="text-center mb-24"
         >
-          <h2 className="section-title">My Professional <span className="text-gradient">Journey</span></h2>
+          <span className="text-blue-500 font-black text-xs uppercase tracking-[0.4em] mb-4 block">My Professional</span>
+          <h2 className="text-5xl md:text-7xl font-black text-white tracking-tighter mb-6">
+            The <span className="text-gradient">Journey</span>
+          </h2>
           <p className="text-gray-400 max-w-2xl mx-auto font-light text-lg">
-            A timeline of my growth, projects, and professional milestones in the field of AI and Automation.
+            A dynamic timeline of my growth, projects, and professional milestones in the field of AI and Automation.
           </p>
         </motion.div>
 
-        <div className="max-w-4xl mx-auto relative">
+        <div className="max-w-6xl mx-auto relative">
           {/* Vertical Center Line */}
-          <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-blue-500 via-purple-500 to-transparent hidden md:block"></div>
+          <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gradient-to-b from-blue-500/50 via-purple-500/50 to-transparent hidden md:block"></div>
 
-          <div className="space-y-12">
+          <div className="space-y-24">
             {timelineEvents.map((event, index) => (
               <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                key={event._id}
+                initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
+                whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className={`flex flex-col md:flex-row items-center gap-8 ${
-                  index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'
-                }`}
+                transition={{ duration: 0.8, ease: "circOut" }}
+                className={`flex flex-col md:flex-row items-center gap-12 ${index % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'
+                  }`}
               >
                 {/* Content Card */}
                 <div className={`w-full md:w-1/2 ${index % 2 === 0 ? 'md:text-right' : 'md:text-left'}`}>
-                  <div className="glass-card p-8 rounded-3xl hover:bg-white/5 transition-all duration-500 group relative">
-                    <div className={`absolute top-0 ${index % 2 === 0 ? 'right-0' : 'left-0'} w-1 h-full bg-gradient-to-b ${event.color} rounded-full`}></div>
-                    <span className="text-blue-400 font-black text-sm tracking-[0.2em] mb-3 block uppercase">{event.date}</span>
-                    <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-blue-400 transition-colors">{event.title}</h3>
-                    <p className="text-gray-400 font-light leading-relaxed">
-                      {event.description}
-                    </p>
+                  <div className="group relative bg-[#0d0d0f] border border-white/5 p-10 rounded-[2.5rem] hover:border-blue-500/30 transition-all duration-700 hover:shadow-2xl hover:shadow-blue-500/10">
+                    {/* Decorative glow */}
+                    <div className={`absolute inset-0 bg-gradient-to-br ${event.color} opacity-0 group-hover:opacity-5 rounded-[2.5rem] transition-opacity duration-700`}></div>
+
+                    <div className={`flex flex-col ${index % 2 === 0 ? 'md:items-end' : 'md:items-start'}`}>
+                      <span className="bg-white/5 border border-white/10 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest text-blue-400 mb-6">
+                        {event.date}
+                      </span>
+                      <h3 className="text-3xl font-black text-white mb-4 tracking-tighter group-hover:text-blue-400 transition-colors leading-tight">
+                        {event.title}
+                      </h3>
+                      <p className="text-gray-400 font-light leading-relaxed text-lg">
+                        {event.description}
+                      </p>
+                    </div>
                   </div>
                 </div>
 
                 {/* Center Icon */}
-                <div className="relative z-20">
-                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${event.color} flex items-center justify-center text-white shadow-2xl shadow-blue-500/20 transform rotate-45 group-hover:rotate-90 transition-transform duration-500`}>
-                    <div className="-rotate-45">{event.icon}</div>
+                <div className="relative z-20 shrink-0">
+                  <div className={`w-20 h-20 rounded-3xl bg-gradient-to-br ${event.color} flex items-center justify-center text-white shadow-2xl shadow-blue-500/40 transform rotate-12 group-hover:rotate-0 transition-transform duration-700 group-hover:scale-110`}>
+                    <div className="text-3xl -rotate-12 group-hover:rotate-0 transition-transform duration-700">
+                      {getIcon(event.icon)}
+                    </div>
                   </div>
+                  {/* Pulse effect */}
+                  <div className={`absolute inset-0 rounded-3xl bg-gradient-to-br ${event.color} animate-ping opacity-20 pointer-events-none`}></div>
                 </div>
 
                 {/* Spacer for other side */}

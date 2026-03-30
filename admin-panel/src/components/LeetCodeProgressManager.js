@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { FaPlus, FaEdit, FaTrash, FaArrowLeft, FaSave, FaTimes } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaArrowLeft, FaSave, FaTimes, FaCode, FaLink, FaCalendarAlt, FaCheckCircle, FaExclamationCircle } from 'react-icons/fa';
+import { motion } from 'framer-motion';
 
 const LeetCodeProgressManager = () => {
   const [problems, setProblems] = useState([]);
@@ -21,6 +22,7 @@ const LeetCodeProgressManager = () => {
   
   const { id } = useParams();
   const navigate = useNavigate();
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
   useEffect(() => {
     if (id) {
@@ -39,7 +41,7 @@ const LeetCodeProgressManager = () => {
         }
       };
       
-      const res = await axios.get('/api/leetcode-progress', config);
+      const res = await axios.get(`${API_URL}/api/leetcode-progress`, config);
       setProblems(res.data);
       setLoading(false);
     } catch (err) {
@@ -57,7 +59,7 @@ const LeetCodeProgressManager = () => {
         }
       };
       
-      const res = await axios.get(`/api/leetcode-progress/${id}`, config);
+      const res = await axios.get(`${API_URL}/api/leetcode-progress/${id}`, config);
       const problem = res.data;
       
       setFormData({
@@ -108,7 +110,7 @@ const LeetCodeProgressManager = () => {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this LeetCode problem?')) {
+    if (window.confirm('Are you sure you want to delete this problem record?')) {
       try {
         const token = localStorage.getItem('token');
         const config = {
@@ -117,21 +119,17 @@ const LeetCodeProgressManager = () => {
           }
         };
         
-        await axios.delete(`/api/leetcode-progress/${id}`, config);
-        toast.success('LeetCode problem deleted successfully');
+        await axios.delete(`${API_URL}/api/leetcode-progress/${id}`, config);
+        toast.success('Deleted successfully');
         fetchProblems();
       } catch (err) {
-        toast.error('Failed to delete LeetCode problem');
+        toast.error('Failed to delete');
       }
     }
   };
 
   const onChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const onSubmit = async (e) => {
@@ -144,25 +142,20 @@ const LeetCodeProgressManager = () => {
           'x-auth-token': token
         }
       };
-      
-      const data = {
-        ...formData,
-        tags: formData.tags ? formData.tags.split(',').map(item => item.trim()) : []
-      };
-      
+
       if (currentProblem) {
-        await axios.put(`/api/leetcode-progress/${currentProblem._id}`, data, config);
-        toast.success('LeetCode problem updated successfully');
+        await axios.put(`${API_URL}/api/leetcode-progress/${currentProblem._id}`, formData, config);
+        toast.success('Updated successfully');
       } else {
-        await axios.post('/api/leetcode-progress', data, config);
-        toast.success('LeetCode problem added successfully');
+        await axios.post(`${API_URL}/api/leetcode-progress`, formData, config);
+        toast.success('Added successfully');
       }
       
       setShowForm(false);
       fetchProblems();
       navigate('/leetcode-progress');
     } catch (err) {
-      toast.error('Failed to save LeetCode problem');
+      toast.error('Failed to save');
     }
   };
 
@@ -175,241 +168,203 @@ const LeetCodeProgressManager = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-xl">Loading LeetCode progress...</div>
+      <div className="flex items-center justify-center h-full bg-[#050505]">
+        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="p-6">
+    <div className="p-10 bg-[#050505] min-h-screen">
       {showForm ? (
-        <div>
-          <div className="flex items-center mb-6">
-            <button onClick={cancelForm} className="mr-4 text-gray-600 hover:text-gray-900">
-              <FaArrowLeft />
-            </button>
-            <h1 className="text-2xl font-bold">
-              {currentProblem ? 'Edit LeetCode Problem' : 'Add New LeetCode Problem'}
-            </h1>
-          </div>
-          
-          <form onSubmit={onSubmit} className="bg-white rounded-lg shadow p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-4xl mx-auto"
+        >
+          <div className="flex items-center justify-between mb-12">
+            <div className="flex items-center gap-6">
+              <button onClick={cancelForm} className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-white/10 transition-all">
+                <FaArrowLeft />
+              </button>
               <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="title">
-                  Problem Title
-                </label>
-                <input
-                  type="text"
-                  id="title"
-                  name="title"
-                  value={formData.title}
-                  onChange={onChange}
-                  required
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                />
+                <h1 className="text-3xl font-black text-white tracking-tighter">
+                  {currentProblem ? 'Edit' : 'Add'} <span className="text-blue-500">Problem</span>
+                </h1>
+                <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px] mt-1">Algorithm Tracking</p>
               </div>
-              
+            </div>
+            <button 
+              onClick={onSubmit}
+              className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 flex items-center gap-3"
+            >
+              <FaSave /> Save Progress
+            </button>
+          </div>
+
+          <div className="bg-[#0d0d0f] border border-white/5 p-10 rounded-[2.5rem] space-y-8">
+            <div>
+              <label className="block text-gray-400 text-[10px] font-black uppercase tracking-widest mb-3">Problem Title</label>
+              <input
+                type="text"
+                name="title"
+                value={formData.title}
+                onChange={onChange}
+                placeholder="e.g. 1. Two Sum"
+                className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-blue-500 transition-all font-bold"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="difficulty">
-                  Difficulty
-                </label>
+                <label className="block text-gray-400 text-[10px] font-black uppercase tracking-widest mb-3">Difficulty</label>
                 <select
-                  id="difficulty"
                   name="difficulty"
                   value={formData.difficulty}
                   onChange={onChange}
-                  required
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-blue-500 transition-all text-sm font-bold appearance-none"
                 >
                   <option value="Easy">Easy</option>
                   <option value="Medium">Medium</option>
                   <option value="Hard">Hard</option>
                 </select>
               </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="status">
-                  Status
-                </label>
+                <label className="block text-gray-400 text-[10px] font-black uppercase tracking-widest mb-3">Status</label>
                 <select
-                  id="status"
                   name="status"
                   value={formData.status}
                   onChange={onChange}
-                  required
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-blue-500 transition-all text-sm font-bold appearance-none"
                 >
                   <option value="Solved">Solved</option>
-                  <option value="In Progress">In Progress</option>
                   <option value="Attempted">Attempted</option>
+                  <option value="Todo">To Do</option>
                 </select>
               </div>
-              
               <div>
-                <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="dateSolved">
-                  Date Solved
-                </label>
+                <label className="block text-gray-400 text-[10px] font-black uppercase tracking-widest mb-3">Date Solved</label>
+                <div className="relative">
+                  <FaCalendarAlt className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-600" />
+                  <input
+                    type="date"
+                    name="dateSolved"
+                    value={formData.dateSolved}
+                    onChange={onChange}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl pl-14 pr-6 py-4 text-white focus:outline-none focus:border-blue-500 transition-all text-sm font-bold"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-gray-400 text-[10px] font-black uppercase tracking-widest mb-3">Solution / Problem Link</label>
+              <div className="relative">
+                <FaLink className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-600" />
                 <input
-                  type="date"
-                  id="dateSolved"
-                  name="dateSolved"
-                  value={formData.dateSolved}
+                  type="text"
+                  name="solutionLink"
+                  value={formData.solutionLink}
                   onChange={onChange}
-                  required
-                  className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                  placeholder="https://leetcode.com/problems/..."
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl pl-14 pr-6 py-4 text-white focus:outline-none focus:border-blue-500 transition-all text-sm font-bold"
                 />
               </div>
             </div>
-            
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="tags">
-                Tags (comma separated)
-              </label>
+
+            <div>
+              <label className="block text-gray-400 text-[10px] font-black uppercase tracking-widest mb-3">Tags (comma separated)</label>
               <input
                 type="text"
-                id="tags"
                 name="tags"
                 value={formData.tags}
                 onChange={onChange}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                placeholder="Array, Hash Table, Dynamic Programming"
+                className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-blue-500 transition-all text-sm font-bold"
               />
             </div>
-            
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="solutionLink">
-                Solution Link (GitHub)
-              </label>
-              <input
-                type="text"
-                id="solutionLink"
-                name="solutionLink"
-                value={formData.solutionLink}
-                onChange={onChange}
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-              />
-            </div>
-            
-            <div className="mb-4">
-              <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="notes">
-                Notes
-              </label>
+
+            <div>
+              <label className="block text-gray-400 text-[10px] font-black uppercase tracking-widest mb-3">Solution Notes / Approach</label>
               <textarea
-                id="notes"
                 name="notes"
                 value={formData.notes}
                 onChange={onChange}
-                rows="3"
-                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                rows="5"
+                placeholder="Explain the logic or complexity..."
+                className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-blue-500 transition-all font-medium leading-relaxed"
               ></textarea>
             </div>
-            
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={cancelForm}
-                className="bg-gray-500 text-white py-2 px-4 rounded mr-2 hover:bg-gray-600 transition"
-              >
-                <FaTimes className="inline mr-2" /> Cancel
-              </button>
-              <button
-                type="submit"
-                className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition"
-              >
-                <FaSave className="inline mr-2" /> Save
-              </button>
-            </div>
-          </form>
-        </div>
+          </div>
+        </motion.div>
       ) : (
-        <div>
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold">LeetCode Progress</h1>
-            <button onClick={handleAdd} className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition flex items-center">
-              <FaPlus className="mr-2" /> Add Problem
+        <div className="max-w-7xl mx-auto">
+          <div className="flex justify-between items-center mb-16">
+            <div>
+              <h1 className="text-4xl font-black text-white tracking-tighter">LeetCode <span className="text-blue-500">Progress</span></h1>
+              <p className="text-gray-500 font-bold uppercase tracking-widest text-xs mt-2">Track your algorithmic journey</p>
+            </div>
+            <button 
+              onClick={handleAdd}
+              className="px-8 py-4 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 flex items-center gap-3"
+            >
+              <FaPlus /> Log Problem
             </button>
           </div>
-          
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            {problems.length > 0 ? (
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Title
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Difficulty
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Date Solved
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {problems.map((problem) => (
-                    <tr key={problem._id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{problem.title}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          problem.difficulty === 'Easy' ? 'bg-green-100 text-green-800' :
-                          problem.difficulty === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {problem.difficulty}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          problem.status === 'Solved' ? 'bg-green-100 text-green-800' :
-                          problem.status === 'In Progress' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {problem.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">
-                          {new Date(problem.dateSolved).toLocaleDateString()}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button
-                          onClick={() => handleEdit(problem)}
-                          className="text-blue-600 hover:text-blue-900 mr-3"
-                        >
-                          <FaEdit />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(problem._id)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          <FaTrash />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <div className="text-center py-12">
-                <p className="text-gray-500 mb-4">No LeetCode problems found</p>
-                <button onClick={handleAdd} className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition">
-                  Add Your First Problem
-                </button>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {problems.map((problem) => (
+              <div key={problem._id} className="bg-[#0d0d0f] border border-white/5 rounded-[2rem] p-8 group hover:border-blue-500/30 transition-all duration-500 flex flex-col h-full">
+                <div className="flex justify-between items-start mb-6">
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center border border-white/10 ${
+                    problem.difficulty === 'Easy' ? 'bg-green-500/10 text-green-500' :
+                    problem.difficulty === 'Medium' ? 'bg-yellow-500/10 text-yellow-500' :
+                    'bg-red-500/10 text-red-500'
+                  }`}>
+                    <FaCode size={20} />
+                  </div>
+                  <span className={`text-[8px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full border ${
+                    problem.status === 'Solved' ? 'text-green-400 border-green-500/30 bg-green-500/10' :
+                    problem.status === 'Attempted' ? 'text-yellow-400 border-yellow-500/30 bg-yellow-500/10' :
+                    'text-gray-400 border-white/10 bg-white/5'
+                  }`}>
+                    {problem.status}
+                  </span>
+                </div>
+                
+                <div className="flex-grow">
+                  <h3 className="text-lg font-black text-white mb-2 group-hover:text-blue-500 transition-colors tracking-tight line-clamp-2">{problem.title}</h3>
+                  <p className={`text-[10px] font-black uppercase tracking-widest mb-4 ${
+                    problem.difficulty === 'Easy' ? 'text-green-500/60' :
+                    problem.difficulty === 'Medium' ? 'text-yellow-500/60' :
+                    'text-red-500/60'
+                  }`}>{problem.difficulty}</p>
+                  
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {problem.tags.slice(0, 2).map((tag, i) => (
+                      <span key={i} className="text-[8px] text-gray-500 font-black uppercase tracking-widest bg-white/5 px-2 py-1 rounded-md">
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-6 mt-auto border-t border-white/5">
+                  <button 
+                    onClick={() => handleEdit(problem)}
+                    className="flex-1 bg-white/5 hover:bg-blue-600 text-white font-black uppercase tracking-widest text-[9px] py-3 rounded-xl transition-all flex items-center justify-center gap-2"
+                  >
+                    <FaEdit /> Edit
+                  </button>
+                  <button 
+                    onClick={() => handleDelete(problem._id)}
+                    className="w-10 h-10 bg-red-600/10 hover:bg-red-600 text-red-500 hover:text-white rounded-xl transition-all flex items-center justify-center"
+                  >
+                    <FaTrash size={12} />
+                  </button>
+                </div>
               </div>
-            )}
+            ))}
           </div>
         </div>
       )}

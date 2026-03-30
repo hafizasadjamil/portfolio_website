@@ -90,27 +90,48 @@ const Skills = () => {
           </h2>
         </motion.div>
 
-        <div className="flex flex-wrap justify-center gap-4 max-w-6xl mx-auto">
+        <div className="flex flex-wrap justify-center gap-6 max-w-7xl mx-auto">
           {skills.map((skill, index) => (
             <motion.div
               key={skill._id}
-              className="bg-gray-900/50 backdrop-blur-xl border border-white/5 hover:border-blue-500/30 px-6 py-4 rounded-2xl flex items-center gap-4 group transition-all duration-300 hover:glow-blue hover:-translate-y-1 cursor-default shadow-2xl shadow-black/20"
+              className={`backdrop-blur-xl border px-8 py-6 rounded-3xl flex items-center gap-6 group transition-all duration-300 hover:-translate-y-1 cursor-default shadow-2xl shadow-black/20 ${skill.highlight
+                  ? 'bg-blue-600/10 border-blue-500/50 glow-blue scale-105 z-10'
+                  : 'bg-gray-900/50 border-white/5 hover:border-blue-500/30'
+                }`}
               initial={{ opacity: 0, scale: 0.9 }}
               whileInView={{ opacity: 1, scale: 1 }}
               viewport={{ once: true }}
               transition={{ delay: index * 0.02, duration: 0.4 }}
             >
-              <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/5 group-hover:bg-blue-500/10 transition-colors">
+              {/* Icon Container - Made significantly larger */}
+              <div className={`w-14 h-14 flex items-center justify-center rounded-2xl transition-all duration-500 group-hover:scale-110 ${skill.highlight ? 'bg-blue-500/20' : 'bg-white/5 group-hover:bg-blue-500/10'
+                }`}>
                 {skill.icon ? (
-                  <img src={getImageUrl(skill.icon)} alt={skill.name} className="w-5 h-5 object-contain" />
+                  <img
+                    src={getImageUrl(skill.icon)}
+                    alt={skill.name}
+                    className="w-10 h-10 object-contain filter drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]"
+                  />
                 ) : (
-                  <span className="text-blue-400 font-black text-sm">{skill.name.charAt(0)}</span>
+                  <span className={`${skill.highlight ? 'text-blue-300' : 'text-blue-400'} font-black text-2xl`}>
+                    {skill.name.charAt(0)}
+                  </span>
                 )}
               </div>
+
               <div className="flex flex-col items-start">
-                <span className="text-white font-bold text-sm tracking-tight">{skill.name}</span>
-                <span className="text-gray-500 text-[9px] font-black uppercase tracking-widest">{skill.category}</span>
+                <span className={`font-black text-lg tracking-tight ${skill.highlight ? 'text-blue-100' : 'text-white'}`}>
+                  {skill.name}
+                </span>
+                <span className={`${skill.highlight ? 'text-blue-400/70' : 'text-gray-500'} text-[10px] font-black uppercase tracking-[0.2em]`}>
+                  {skill.category}
+                </span>
               </div>
+
+              {/* Decorative pulse for highlighted skills */}
+              {skill.highlight && (
+                <div className="absolute top-3 right-3 w-2 h-2 bg-blue-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(59,130,246,1)]"></div>
+              )}
             </motion.div>
           ))}
         </div>

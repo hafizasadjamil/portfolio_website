@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { FaEnvelopeOpen, FaEnvelope, FaTrash, FaReply } from 'react-icons/fa';
+import { FaEnvelopeOpen, FaEnvelope, FaTrash, FaReply, FaUser, FaClock, FaCheckCircle, FaInbox } from 'react-icons/fa';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Messages = () => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedMessage, setSelectedMessage] = useState(null);
+
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
   useEffect(() => {
     fetchMessages();
@@ -21,7 +24,7 @@ const Messages = () => {
         }
       };
       
-      const res = await axios.get('/api/contact', config);
+      const res = await axios.get(`${API_URL}/api/contact`, config);
       setMessages(res.data);
       setLoading(false);
     } catch (err) {
@@ -39,8 +42,7 @@ const Messages = () => {
         }
       };
       
-      await axios.put(`/api/contact/${id}`, {}, config);
-      toast.success('Message marked as read');
+      await axios.put(`${API_URL}/api/contact/${id}`, {}, config);
       fetchMessages();
     } catch (err) {
       toast.error('Failed to mark message as read');
@@ -57,7 +59,7 @@ const Messages = () => {
           }
         };
         
-        await axios.delete(`/api/contact/${id}`, config);
+        await axios.delete(`${API_URL}/api/contact/${id}`, config);
         toast.success('Message deleted successfully');
         fetchMessages();
         if (selectedMessage && selectedMessage._id === id) {
@@ -74,131 +76,153 @@ const Messages = () => {
   };
 
   const formatDate = (dateString) => {
-    const options = { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+    const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
     return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-xl">Loading messages...</div>
+      <div className="flex items-center justify-center h-full bg-[#050505]">
+        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">Messages</h1>
-      
-      <div className="flex flex-col md:flex-row gap-6">
-        <div className="md:w-1/3 bg-white rounded-lg shadow overflow-hidden">
-          <div className="p-4 border-b">
-            <h2 className="text-lg font-semibold">Inbox ({messages.length})</h2>
-          </div>
-          
-          <div className="divide-y divide-gray-200 max-h-[calc(100vh-200px)] overflow-y-auto">
-            {messages.length > 0 ? (
-              messages.map((message) => (
-                <div 
-                  key={message._id}
-                  className={`p-4 cursor-pointer hover:bg-gray-50 ${selectedMessage?._id === message._id ? 'bg-blue-50' : ''}`}
-                  onClick={() => setSelectedMessage(message)}
-                >
-                  <div className="flex items-start">
-                    <div className="mr-3">
-                      {message.read ? (
-                        <FaEnvelopeOpen className="text-gray-400" />
-                      ) : (
-                        <FaEnvelope className="text-blue-500" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-medium text-gray-900 truncate">
-                          {message.name}
-                        </h3>
-                        <span className="text-xs text-gray-500">
-                          {new Date(message.createdAt).toLocaleDateString()}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-500 truncate">{message.subject}</p>
-                    </div>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="p-8 text-center">
-                <p className="text-gray-500">No messages found</p>
-              </div>
-            )}
-          </div>
+    <div className="p-10 bg-[#050505] min-h-screen">
+      <div className="flex justify-between items-center mb-12">
+        <div>
+          <h1 className="text-4xl font-black text-white tracking-tighter flex items-center gap-4">
+            Message <span className="text-blue-500">Inbox</span>
+            <span className="bg-blue-600/10 text-blue-500 text-xs px-3 py-1 rounded-full border border-blue-500/20">{messages.length}</span>
+          </h1>
+          <p className="text-gray-500 font-bold uppercase tracking-widest text-xs mt-2">Manage inquiries and communications</p>
         </div>
-        
-        <div className="md:w-2/3 bg-white rounded-lg shadow overflow-hidden">
-          {selectedMessage ? (
-            <div className="h-full flex flex-col">
-              <div className="p-4 border-b flex justify-between items-center">
-                <h2 className="text-lg font-semibold">{selectedMessage.subject}</h2>
-                <div className="flex space-x-2">
-                  {!selectedMessage.read && (
-                    <button
-                      onClick={() => markAsRead(selectedMessage._id)}
-                      className="text-blue-600 hover:text-blue-800"
-                      title="Mark as read"
-                    >
-                      <FaEnvelopeOpen />
-                    </button>
-                  )}
-                  <button
-                    onClick={() => handleReply(selectedMessage.email)}
-                    className="text-green-600 hover:text-green-800"
-                    title="Reply"
-                  >
-                    <FaReply />
-                  </button>
-                  <button
-                    onClick={() => deleteMessage(selectedMessage._id)}
-                    className="text-red-600 hover:text-red-800"
-                    title="Delete"
-                  >
-                    <FaTrash />
-                  </button>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        {/* Message List */}
+        <div className="lg:col-span-4 space-y-4 max-h-[calc(100vh-250px)] overflow-y-auto no-scrollbar">
+          {messages.map((msg) => (
+            <div 
+              key={msg._id}
+              onClick={() => {
+                setSelectedMessage(msg);
+                if (!msg.read) markAsRead(msg._id);
+              }}
+              className={`p-6 rounded-[2rem] border transition-all cursor-pointer group relative overflow-hidden ${
+                selectedMessage?._id === msg._id 
+                  ? 'bg-blue-600 border-blue-500 shadow-lg shadow-blue-600/20' 
+                  : msg.read 
+                    ? 'bg-[#0d0d0f] border-white/5 hover:border-white/10' 
+                    : 'bg-[#0d0d0f] border-blue-500/30 shadow-lg shadow-blue-500/5'
+              }`}
+            >
+              {!msg.read && (
+                <div className="absolute top-6 right-6 w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+              )}
+              <div className="flex items-center gap-4 mb-3">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${selectedMessage?._id === msg._id ? 'bg-white/20' : 'bg-white/5'}`}>
+                  <FaUser className={selectedMessage?._id === msg._id ? 'text-white' : 'text-gray-500'} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className={`text-sm font-black truncate ${selectedMessage?._id === msg._id ? 'text-white' : 'text-gray-200'}`}>
+                    {msg.name}
+                  </h4>
+                  <p className={`text-[10px] font-bold uppercase tracking-widest ${selectedMessage?._id === msg._id ? 'text-blue-100' : 'text-gray-500'}`}>
+                    {formatDate(msg.date).split(',')[0]}
+                  </p>
                 </div>
               </div>
-              
-              <div className="p-6 flex-1 overflow-y-auto">
-                <div className="mb-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900">{selectedMessage.name}</h3>
-                      <p className="text-sm text-gray-500">{selectedMessage.email}</p>
+              <p className={`text-xs font-medium line-clamp-1 ${selectedMessage?._id === msg._id ? 'text-blue-50' : 'text-gray-400'}`}>
+                {msg.subject}
+              </p>
+            </div>
+          ))}
+          {messages.length === 0 && (
+            <div className="text-center py-20 bg-[#0d0d0f] border border-white/5 rounded-[2.5rem]">
+              <FaInbox className="text-4xl text-gray-800 mx-auto mb-4" />
+              <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">Your inbox is empty</p>
+            </div>
+          )}
+        </div>
+
+        {/* Message Detail */}
+        <div className="lg:col-span-8">
+          <AnimatePresence mode="wait">
+            {selectedMessage ? (
+              <motion.div
+                key={selectedMessage._id}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="bg-[#0d0d0f] border border-white/5 rounded-[3rem] p-12 h-full flex flex-col"
+              >
+                <div className="flex justify-between items-start mb-12">
+                  <div className="flex items-center gap-6">
+                    <div className="w-20 h-20 bg-blue-600/10 rounded-[1.5rem] flex items-center justify-center text-blue-500 text-3xl">
+                      {selectedMessage.name.charAt(0)}
                     </div>
-                    <p className="text-sm text-gray-500">{formatDate(selectedMessage.createdAt)}</p>
+                    <div>
+                      <h2 className="text-3xl font-black text-white tracking-tighter">{selectedMessage.name}</h2>
+                      <p className="text-blue-500 font-bold text-sm">{selectedMessage.email}</p>
+                    </div>
                   </div>
-                  
-                  <div className="mt-6 text-gray-700 whitespace-pre-line">
+                  <div className="flex gap-3">
+                    <button 
+                      onClick={() => handleReply(selectedMessage.email)}
+                      className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-white hover:bg-blue-600 hover:border-blue-500 transition-all"
+                      title="Reply"
+                    >
+                      <FaReply size={14} />
+                    </button>
+                    <button 
+                      onClick={() => deleteMessage(selectedMessage._id)}
+                      className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-red-500 hover:bg-red-600 hover:text-white hover:border-red-500 transition-all"
+                      title="Delete"
+                    >
+                      <FaTrash size={14} />
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-8 mb-12 py-6 border-y border-white/5">
+                  <div className="flex items-center gap-2">
+                    <FaClock className="text-gray-600" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">{formatDate(selectedMessage.date)}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <FaCheckCircle className="text-green-500" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">Received via Website</span>
+                  </div>
+                </div>
+
+                <div className="flex-1">
+                  <h3 className="text-xl font-black text-white mb-6 uppercase tracking-tight">{selectedMessage.subject}</h3>
+                  <div className="bg-white/5 rounded-[2rem] p-8 text-gray-300 leading-relaxed font-medium whitespace-pre-wrap">
                     {selectedMessage.message}
                   </div>
                 </div>
+
+                <div className="mt-12 pt-8 border-t border-white/5">
+                  <button 
+                    onClick={() => handleReply(selectedMessage.email)}
+                    className="px-10 py-4 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20"
+                  >
+                    Send Response
+                  </button>
+                </div>
+              </motion.div>
+            ) : (
+              <div className="bg-[#0d0d0f] border border-white/5 border-dashed rounded-[3rem] p-12 h-full flex flex-col items-center justify-center text-center opacity-50">
+                <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mb-6">
+                  <FaEnvelope className="text-gray-700 text-4xl" />
+                </div>
+                <h3 className="text-2xl font-black text-white tracking-tighter mb-2">Select a message</h3>
+                <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">Pick an inquiry from the inbox to view details</p>
               </div>
-              
-              <div className="p-4 border-t bg-gray-50">
-                <button
-                  onClick={() => handleReply(selectedMessage.email)}
-                  className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition flex items-center"
-                >
-                  <FaReply className="mr-2" /> Reply via Email
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-center justify-center h-full p-8">
-              <div className="text-center">
-                <FaEnvelope className="text-gray-300 text-5xl mx-auto mb-4" />
-                <p className="text-gray-500">Select a message to view</p>
-              </div>
-            </div>
-          )}
+            )}
+          </AnimatePresence>
         </div>
       </div>
     </div>

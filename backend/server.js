@@ -19,7 +19,7 @@ const allowedOrigins = [
 ].filter(Boolean);
 
 app.use(cors({
-  origin: function(origin, callback) {
+  origin: function (origin, callback) {
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
@@ -39,8 +39,8 @@ mongoose.connect(process.env.MONGODB_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-.then(() => console.log('MongoDB connected'))
-.catch(err => console.log('MongoDB connection error:', err));
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.log('MongoDB connection error:', err));
 
 // Routes
 const authRoutes = require('./routes/auth');
@@ -53,6 +53,9 @@ const contactRoutes = require('./routes/contact');
 const profileRoutes = require('./routes/profile');
 const courseCertificationRoutes = require('./routes/courseCertifications');
 const leetCodeProgressRoutes = require('./routes/leetCodeProgress');
+const demoRoutes = require('./routes/demoRoutes');
+const journeyRoutes = require('./routes/journey');
+const jobScraperRoutes = require('./routes/jobScraper');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
@@ -64,6 +67,9 @@ app.use('/api/contact', contactRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/course-certifications', courseCertificationRoutes);
 app.use('/api/leetcode-progress', leetCodeProgressRoutes);
+app.use('/api/demos', demoRoutes);
+app.use('/api/journey', journeyRoutes);
+app.use('/api/job-scraper', jobScraperRoutes);
 
 // Start server
 const PORT = process.env.PORT || 5000;
