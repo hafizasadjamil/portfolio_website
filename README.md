@@ -35,10 +35,11 @@ There is no public sign-up.
 
 ## Deploy
 
-**Backend (Railway):** use `backend` as the root directory; the `Dockerfile` installs Node and Python.
+**Backend:** any host that runs Docker or Node 20+ (Render, Fly.io, a VPS…), with `backend` as the root directory.
 
+- With Docker, the `Dockerfile` installs Node and Python (Python runs the job scraper). Without Docker, run `npm ci --omit=dev` and `npm start`.
 - Set `MONGODB_URI`, `JWT_SECRET` and `ADMIN_URL`; see `backend/.env.example` for the rest.
-- Uploaded images are lost on redeploy unless you add a volume. Mount it at `/data` and set `UPLOADS_DIR=/data/uploads`.
+- Uploaded images are lost on redeploy unless the host gives you a persistent disk. Mount it, for example at `/data`, and set `UPLOADS_DIR=/data/uploads`.
 - Health check path: `/api/health`
 
 **Frontend and admin panel (Vercel):** one project each, with `frontend` or `admin-panel` as the root directory.
