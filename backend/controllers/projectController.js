@@ -1,4 +1,6 @@
 const Project = require('../models/Project');
+const handleError = require('../middleware/handleError');
+const toList = require('../utils/toList');
 
 // Get all projects
 exports.getAllProjects = async (req, res) => {
@@ -6,8 +8,7 @@ exports.getAllProjects = async (req, res) => {
     const projects = await Project.find().sort({ createdAt: -1 });
     res.json(projects);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };
 
@@ -20,8 +21,7 @@ exports.getProjectById = async (req, res) => {
     }
     res.json(project);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };
 
@@ -40,7 +40,7 @@ exports.createProject = async (req, res) => {
       description,
       image: images.length > 0 ? images[0] : '',
       images: images,
-      techStack: techStack.split(',').map(item => item.trim()),
+      techStack: toList(techStack),
       githubUrl,
       demoUrl,
       featured: featured === 'true'
@@ -49,8 +49,7 @@ exports.createProject = async (req, res) => {
     const project = await newProject.save();
     res.json(project);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };
 
@@ -68,44 +67,38 @@ exports.updateProject = async (req, res) => {
     const projectFields = {
       title,
       description,
-      techStack: techStack.split(',').map(item => item.trim()),
+      techStack: toList(techStack),
       githubUrl,
       demoUrl,
       featured: featured === 'true'
     };
 
-    let updatedImages = [];
-
-    // Parse existing images if any
-    if (existingImages) {
+    // The admin form always sends the images to keep, so an empty list means "remove them all".
+    let images = project.images.length > 0 ? project.images : [project.image].filter(Boolean);
+    if (existingImages !== undefined) {
       try {
-        updatedImages = JSON.parse(existingImages);
-      } catch (e) {
-        console.error('Error parsing existingImages:', e);
+        images = JSON.parse(existingImages);
+      } catch (err) {
+        images = null;
+      }
+      if (!Array.isArray(images) || !images.every(img => typeof img === 'string')) {
+        return res.status(400).json({ msg: 'existingImages must be a JSON list of paths' });
       }
     }
 
-    // Add newly uploaded images
-    if (req.files && req.files.length > 0) {
-      const newImages = req.files.map(file => `/uploads/${file.filename}`);
-      updatedImages = [...updatedImages, ...newImages];
-    }
-
-    if (updatedImages.length > 0) {
-      projectFields.images = updatedImages;
-      projectFields.image = updatedImages[0];
-    }
+    const uploaded = (req.files || []).map(file => `/uploads/${file.filename}`);
+    projectFields.images = [...images, ...uploaded];
+    projectFields.image = projectFields.images[0] || '';
 
     project = await Project.findByIdAndUpdate(
       req.params.id,
       { $set: projectFields },
-      { new: true }
+      { new: true, runValidators: true }
     );
 
     res.json(project);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };
 
@@ -122,7 +115,6 @@ exports.deleteProject = async (req, res) => {
 
     res.json({ msg: 'Project removed' });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };

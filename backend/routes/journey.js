@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Journey = require('../models/Journey');
 const auth = require('../middleware/auth');
+const handleError = require('../middleware/handleError');
 
 // @route   GET api/journey
 // @desc    Get all journey events
@@ -11,8 +12,7 @@ router.get('/', async (req, res) => {
         const events = await Journey.find().sort({ order: 1, createdAt: -1 });
         res.json(events);
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        handleError(err, res);
     }
 });
 
@@ -35,8 +35,7 @@ router.post('/', auth, async (req, res) => {
         const event = await newEvent.save();
         res.json(event);
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        handleError(err, res);
     }
 });
 
@@ -63,13 +62,12 @@ router.put('/:id', auth, async (req, res) => {
         event = await Journey.findByIdAndUpdate(
             req.params.id,
             { $set: eventFields },
-            { new: true }
+            { new: true, runValidators: true }
         );
 
         res.json(event);
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        handleError(err, res);
     }
 });
 
@@ -86,8 +84,7 @@ router.delete('/:id', auth, async (req, res) => {
 
         res.json({ msg: 'Event removed' });
     } catch (err) {
-        console.error(err.message);
-        res.status(500).send('Server Error');
+        handleError(err, res);
     }
 });
 

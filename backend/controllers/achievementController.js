@@ -1,4 +1,5 @@
 const Achievement = require('../models/Achievement');
+const handleError = require('../middleware/handleError');
 
 // Get all achievements
 exports.getAllAchievements = async (req, res) => {
@@ -6,8 +7,20 @@ exports.getAllAchievements = async (req, res) => {
     const achievements = await Achievement.find().sort({ date: -1 });
     res.json(achievements);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
+  }
+};
+
+// Get achievement by ID
+exports.getAchievementById = async (req, res) => {
+  try {
+    const item = await Achievement.findById(req.params.id);
+    if (!item) {
+      return res.status(404).json({ msg: 'Achievement not found' });
+    }
+    res.json(item);
+  } catch (err) {
+    handleError(err, res);
   }
 };
 
@@ -26,8 +39,7 @@ exports.createAchievement = async (req, res) => {
     const achievement = await newAchievement.save();
     res.json(achievement);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };
 
@@ -55,13 +67,12 @@ exports.updateAchievement = async (req, res) => {
     achievement = await Achievement.findByIdAndUpdate(
       req.params.id,
       { $set: achievementFields },
-      { new: true }
+      { new: true, runValidators: true }
     );
     
     res.json(achievement);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };
 
@@ -78,7 +89,6 @@ exports.deleteAchievement = async (req, res) => {
     
     res.json({ msg: 'Achievement removed' });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };

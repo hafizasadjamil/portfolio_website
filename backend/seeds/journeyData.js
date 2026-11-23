@@ -1,8 +1,6 @@
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
+const connectDB = require('../config/db');
+const confirmOverwrite = require('./confirmOverwrite');
 const Journey = require('../models/Journey');
-
-dotenv.config({ path: '../.env' });
 
 const timelineEvents = [
     {
@@ -65,8 +63,10 @@ const timelineEvents = [
 
 const seedJourney = async () => {
     try {
-        await mongoose.connect(process.env.MONGODB_URI);
+        await connectDB();
         console.log('MongoDB Connected...');
+
+        await confirmOverwrite([Journey]);
 
         await Journey.deleteMany();
         console.log('Old Journey Data Removed...');
@@ -76,7 +76,7 @@ const seedJourney = async () => {
 
         process.exit();
     } catch (err) {
-        console.error(err);
+        console.error(err.message);
         process.exit(1);
     }
 };

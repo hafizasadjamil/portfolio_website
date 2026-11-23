@@ -1,131 +1,43 @@
-const mongoose = require('mongoose');
+const Profile = require('../models/Profile');
+const handleError = require('../middleware/handleError');
 
-// Define Profile schema
-const ProfileSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true,
-  },
-  tagline: {
-    type: String,
-    required: true,
-  },
-  bio: {
-    type: String,
-    required: true,
-  },
-  profileImage: {
-    type: String,
-    default: '',
-  },
-  cvUrl: {
-    type: String,
-    default: '',
-  },
-  socialLinks: {
-    linkedin: {
-      type: String,
-      default: '',
-    },
-    github: {
-      type: String,
-      default: '',
-    },
-    twitter: {
-      type: String,
-      default: '',
-    },
-    email: {
-      type: String,
-      default: '',
-    },
-    phone: {
-      type: String,
-      default: '',
-    },
-  },
-  bookingUrl: {
-    type: String,
-    default: '',
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now,
-  },
-});
-
-const Profile = mongoose.model('Profile', ProfileSchema);
-
-// Get profile data
+// Get profile data. There is only ever one profile document.
 exports.getProfile = async (req, res) => {
   try {
-    // There should be only one profile document
-    let profile = await Profile.findOne();
-
-    // If no profile exists, create a default one
-    if (!profile) {
-      profile = new Profile({
-        name: 'Muhammad Asad Jamil',
-        tagline: 'AI & Software Engineer | Building Intelligent and Scalable Systems',
-        bio: 'I am a Computer Science graduate passionate about Artificial Intelligence and intelligent systems. I specialize in Python, machine learning frameworks, and full-stack development. I love solving real-world problems with code, from building AI-powered applications to deploying production-ready systems.',
-      });
-
-      await profile.save();
-    }
-
-    res.json(profile);
+    const profile = await Profile.findOne();
+    res.json(profile || new Profile());
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };
 
 // Update profile data
 exports.updateProfile = async (req, res) => {
   try {
-    const { name, tagline, bio, cvUrl, socialLinks, bookingUrl } = req.body;
+    const { name, tagline, bio, cvUrl, bookingUrl, securityWork } = req.body;
+    const fields = { name, tagline, bio, cvUrl, bookingUrl, securityWork, updatedAt: Date.now() };
 
-    let profile = await Profile.findOne();
-
-    // If no profile exists, create one
-    if (!profile) {
-      profile = new Profile({
-        name,
-        tagline,
-        bio,
-        cvUrl,
-        socialLinks: JSON.parse(socialLinks),
-        bookingUrl,
-      });
-    } else {
-      const profileFields = {
-        name,
-        tagline,
-        bio,
-        cvUrl,
-        socialLinks: JSON.parse(socialLinks),
-        bookingUrl,
-        updatedAt: Date.now()
-      };
-
-      if (req.file) {
-        profileFields.profileImage = `/uploads/${req.file.filename}`;
+    if (req.body.socialLinks) {
+      try {
+        fields.socialLinks = JSON.parse(req.body.socialLinks);
+      } catch (err) {
+        return res.status(400).json({ msg: 'socialLinks must be valid JSON' });
       }
-
-      profile = await Profile.findOneAndUpdate(
-        {},
-        { $set: profileFields },
-        { new: true, upsert: true }
-      );
     }
+
+    if (req.file) {
+      fields.profileImage = `/uploads/${req.file.filename}`;
+    }
+
+    // Leave out anything the request didn't send, so it keeps its current value.
+    const changes = Object.fromEntries(Object.entries(fields).filter(([, value]) => value !== undefined));
+
+    const profile = (await Profile.findOne()) || new Profile();
+    profile.set(changes);
+    await profile.save();
 
     res.json(profile);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };

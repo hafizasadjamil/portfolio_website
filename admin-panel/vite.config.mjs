@@ -1,0 +1,11 @@
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+
+export default defineConfig({
+  plugins: [react()],
+  // Keeps the REACT_APP_API_URL variable that is already set on Vercel.
+  envPrefix: 'REACT_APP_',
+  server: { port: 3001, strictPort: true },
+  preview: { port: 3001, strictPort: true },
+  build: { outDir: 'build', chunkSizeWarningLimit: 800 },
+});

@@ -1,4 +1,5 @@
 const Education = require('../models/Education');
+const handleError = require('../middleware/handleError');
 
 // Get all education entries
 exports.getAllEducation = async (req, res) => {
@@ -6,8 +7,20 @@ exports.getAllEducation = async (req, res) => {
     const education = await Education.find().sort({ startDate: -1 });
     res.json(education);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
+  }
+};
+
+// Get education entry by ID
+exports.getEducationById = async (req, res) => {
+  try {
+    const item = await Education.findById(req.params.id);
+    if (!item) {
+      return res.status(404).json({ msg: 'Education entry not found' });
+    }
+    res.json(item);
+  } catch (err) {
+    handleError(err, res);
   }
 };
 
@@ -28,8 +41,7 @@ exports.createEducation = async (req, res) => {
     const education = await newEducation.save();
     res.json(education);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };
 
@@ -56,13 +68,12 @@ exports.updateEducation = async (req, res) => {
     education = await Education.findByIdAndUpdate(
       req.params.id,
       { $set: educationFields },
-      { new: true }
+      { new: true, runValidators: true }
     );
     
     res.json(education);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };
 
@@ -79,7 +90,6 @@ exports.deleteEducation = async (req, res) => {
     
     res.json({ msg: 'Education entry removed' });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };

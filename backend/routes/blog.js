@@ -1,28 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const multer = require('multer');
-const path = require('path');
+const upload = require('../middleware/upload');
 const {
   getAllBlogs,
   getAllBlogsAdmin,
+  getBlogByIdAdmin,
   getBlogBySlug,
   createBlog,
   updateBlog,
   deleteBlog
 } = require('../controllers/blogController');
-
-// Set up multer for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/');
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname));
-  }
-});
-
-const upload = multer({ storage: storage });
 
 // @route   GET api/blog
 // @desc    Get all blog posts
@@ -33,6 +21,11 @@ router.get('/', getAllBlogs);
 // @desc    Get all blog posts (including unpublished)
 // @access  Private
 router.get('/admin', auth, getAllBlogsAdmin);
+
+// @route   GET api/blog/admin/:id
+// @desc    Get one blog post (including unpublished)
+// @access  Private
+router.get('/admin/:id', auth, getBlogByIdAdmin);
 
 // @route   GET api/blog/:slug
 // @desc    Get blog post by slug

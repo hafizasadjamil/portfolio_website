@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
+const { contactLimiter } = require('../middleware/rateLimit');
 const {
   sendMessage,
   getAllMessages,
@@ -11,7 +12,7 @@ const {
 // @route   POST api/contact
 // @desc    Send a contact message
 // @access  Public
-router.post('/', sendMessage);
+router.post('/', contactLimiter, sendMessage);
 
 // @route   GET api/contact
 // @desc    Get all contact messages

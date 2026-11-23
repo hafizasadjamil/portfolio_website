@@ -1,4 +1,6 @@
 const CourseCertification = require('../models/CourseCertification');
+const handleError = require('../middleware/handleError');
+const toList = require('../utils/toList');
 
 // Get all courses and certifications
 exports.getAllCourseCertifications = async (req, res) => {
@@ -6,8 +8,7 @@ exports.getAllCourseCertifications = async (req, res) => {
     const courses = await CourseCertification.find().sort({ date: -1 });
     res.json(courses);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };
 
@@ -20,15 +21,14 @@ exports.getCourseCertificationById = async (req, res) => {
     }
     res.json(course);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };
 
 // Create a new course/certification
 exports.createCourseCertification = async (req, res) => {
   try {
-    const { title, provider, type, date, certificateLink, credentialId, description, skillsLearnt } = req.body;
+    const { title, provider, type, date, certificateLink, verifyUrl, credentialId, description, skillsLearnt } = req.body;
     
     const newCourse = new CourseCertification({
       title,
@@ -36,24 +36,24 @@ exports.createCourseCertification = async (req, res) => {
       type,
       date,
       certificateLink,
+      verifyUrl,
       credentialId,
       description,
-      skillsLearnt: skillsLearnt ? skillsLearnt.split(',').map(item => item.trim()) : [],
+      skillsLearnt: toList(skillsLearnt),
       badgeImage: req.file ? `/uploads/${req.file.filename}` : '',
     });
     
     const course = await newCourse.save();
     res.json(course);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };
 
 // Update a course/certification
 exports.updateCourseCertification = async (req, res) => {
   try {
-    const { title, provider, type, date, certificateLink, credentialId, description, skillsLearnt } = req.body;
+    const { title, provider, type, date, certificateLink, verifyUrl, credentialId, description, skillsLearnt } = req.body;
     
     let course = await CourseCertification.findById(req.params.id);
     
@@ -67,9 +67,10 @@ exports.updateCourseCertification = async (req, res) => {
       type,
       date,
       certificateLink,
+      verifyUrl,
       credentialId,
       description,
-      skillsLearnt: skillsLearnt ? skillsLearnt.split(',').map(item => item.trim()) : [],
+      skillsLearnt: toList(skillsLearnt),
     };
     
     if (req.file) {
@@ -79,13 +80,12 @@ exports.updateCourseCertification = async (req, res) => {
     course = await CourseCertification.findByIdAndUpdate(
       req.params.id,
       { $set: courseFields },
-      { new: true }
+      { new: true, runValidators: true }
     );
     
     res.json(course);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };
 
@@ -102,7 +102,6 @@ exports.deleteCourseCertification = async (req, res) => {
     
     res.json({ msg: 'Course/Certification removed' });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };

@@ -7,7 +7,7 @@ const CourseCertificationSchema = new mongoose.Schema({
   },
   provider: {
     type: String,
-    required: true,
+    default: '',
   },
   type: {
     type: String,
@@ -16,7 +16,7 @@ const CourseCertificationSchema = new mongoose.Schema({
   },
   date: {
     type: Date,
-    required: true,
+    default: null,
   },
   certificateLink: {
     type: String,
@@ -33,6 +33,11 @@ const CourseCertificationSchema = new mongoose.Schema({
   skillsLearnt: {
     type: [String],
     default: [],
+  },
+  // Public page where the certificate can be checked, such as Microsoft Learn or Credly.
+  verifyUrl: {
+    type: String,
+    default: '',
   },
   badgeImage: {
     type: String,

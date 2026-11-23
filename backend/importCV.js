@@ -1,10 +1,7 @@
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
+const connectDB = require('./config/db');
 const Skill = require('./models/Skill');
 const Project = require('./models/Project');
 const CourseCertification = require('./models/CourseCertification');
-
-dotenv.config();
 
 const skills = [
   // Programming
@@ -45,7 +42,7 @@ const projects = [
     description: 'A fully automated AI voice agent capable of handling customer calls, scheduling appointments, and answering queries in real-time using Vapi and Twilio.',
     techStack: ['Python', 'Vapi', 'Twilio', 'OpenAI'],
     githubUrl: 'https://github.com/masadjamil',
-    demoUrl: 'https://vapi.ai',
+    demoUrl: '',
     featured: true
   },
   {
@@ -53,7 +50,7 @@ const projects = [
     description: 'An advanced RAG system utilizing multiple specialized AI agents to process large document sets and provide accurate, context-aware answers.',
     techStack: ['LangChain', 'OpenAI', 'Pinecone', 'FastAPI'],
     githubUrl: 'https://github.com/masadjamil',
-    demoUrl: 'https://langchain.com',
+    demoUrl: '',
     featured: true
   },
   {
@@ -61,7 +58,7 @@ const projects = [
     description: 'An AI-powered CRM with integrated voice agents, automated lead scoring, and personalized email outreach systems.',
     techStack: ['React', 'Node.js', 'MongoDB', 'OpenAI'],
     githubUrl: 'https://github.com/masadjamil',
-    demoUrl: 'http://localhost:3000/demo',
+    demoUrl: '',
     featured: true
   },
   {
@@ -69,7 +66,7 @@ const projects = [
     description: 'An AI tool that generates SEO-optimized blog posts and social media content based on simple keywords and trends.',
     techStack: ['Next.js', 'Python', 'OpenAI', 'Tailwind'],
     githubUrl: 'https://github.com/masadjamil',
-    demoUrl: 'https://openai.com',
+    demoUrl: '',
     featured: false
   }
 ];
@@ -82,7 +79,7 @@ const certificates = [
     date: new Date('2024-01-15'),
     description: 'Comprehensive specialization covering Supervised Learning, Advanced Learning Algorithms, and Unsupervised Learning.',
     skillsLearnt: ['Neural Networks', 'Decision Trees', 'Recommender Systems'],
-    credentialId: 'ML-123456'
+    credentialId: ''
   },
   {
     title: 'AI Automation Engineering',
@@ -91,7 +88,7 @@ const certificates = [
     date: new Date('2024-02-20'),
     description: 'Advanced course on building AI agents, workflow automation, and integrating LLMs into business processes.',
     skillsLearnt: ['LangChain', 'Zapier', 'Make.com', 'AutoGPT'],
-    credentialId: 'AUTO-789012'
+    credentialId: ''
   },
   {
     title: 'Full Stack Web Development',
@@ -100,13 +97,13 @@ const certificates = [
     date: new Date('2023-11-10'),
     description: 'Professional certificate covering front-end and back-end development using React and Node.js.',
     skillsLearnt: ['React', 'Node.js', 'Express', 'MongoDB'],
-    credentialId: 'META-345678'
+    credentialId: ''
   }
 ];
 
 const importData = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI);
+    await connectDB();
     console.log('MongoDB Connected for Import...');
 
     // Get existing data to avoid duplicates

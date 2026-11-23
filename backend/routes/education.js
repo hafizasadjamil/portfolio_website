@@ -3,6 +3,7 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const {
   getAllEducation,
+  getEducationById,
   createEducation,
   updateEducation,
   deleteEducation
@@ -12,6 +13,11 @@ const {
 // @desc    Get all education entries
 // @access  Public
 router.get('/', getAllEducation);
+
+// @route   GET api/education/:id
+// @desc    Get one entry by ID
+// @access  Public
+router.get('/:id', getEducationById);
 
 // @route   POST api/education
 // @desc    Create an education entry

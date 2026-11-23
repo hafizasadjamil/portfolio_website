@@ -1,4 +1,6 @@
 const LeetCodeProgress = require('../models/LeetCodeProgress');
+const handleError = require('../middleware/handleError');
+const toList = require('../utils/toList');
 
 // Get all LeetCode progress entries
 exports.getAllLeetCodeProgress = async (req, res) => {
@@ -6,8 +8,7 @@ exports.getAllLeetCodeProgress = async (req, res) => {
     const problems = await LeetCodeProgress.find().sort({ dateSolved: -1 });
     res.json(problems);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };
 
@@ -20,8 +21,7 @@ exports.getLeetCodeProgressById = async (req, res) => {
     }
     res.json(problem);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };
 
@@ -33,7 +33,7 @@ exports.createLeetCodeProgress = async (req, res) => {
     const newProblem = new LeetCodeProgress({
       title,
       difficulty,
-      tags: tags ? tags.split(',').map(item => item.trim()) : [],
+      tags: toList(tags),
       status,
       solutionLink,
       dateSolved,
@@ -43,8 +43,7 @@ exports.createLeetCodeProgress = async (req, res) => {
     const problem = await newProblem.save();
     res.json(problem);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };
 
@@ -62,7 +61,7 @@ exports.updateLeetCodeProgress = async (req, res) => {
     const problemFields = {
       title,
       difficulty,
-      tags: tags ? tags.split(',').map(item => item.trim()) : [],
+      tags: toList(tags),
       status,
       solutionLink,
       dateSolved,
@@ -72,13 +71,12 @@ exports.updateLeetCodeProgress = async (req, res) => {
     problem = await LeetCodeProgress.findByIdAndUpdate(
       req.params.id,
       { $set: problemFields },
-      { new: true }
+      { new: true, runValidators: true }
     );
     
     res.json(problem);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };
 
@@ -95,8 +93,7 @@ exports.deleteLeetCodeProgress = async (req, res) => {
     
     res.json({ msg: 'LeetCode problem removed' });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };
 
@@ -124,7 +121,6 @@ exports.getLeetCodeStats = async (req, res) => {
     
     res.json(stats);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };

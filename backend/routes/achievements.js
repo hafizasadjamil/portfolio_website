@@ -1,31 +1,24 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const multer = require('multer');
-const path = require('path');
+const upload = require('../middleware/upload');
 const {
   getAllAchievements,
+  getAchievementById,
   createAchievement,
   updateAchievement,
   deleteAchievement
 } = require('../controllers/achievementController');
 
-// Set up multer for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/');
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname));
-  }
-});
-
-const upload = multer({ storage: storage });
-
 // @route   GET api/achievements
 // @desc    Get all achievements
 // @access  Public
 router.get('/', getAllAchievements);
+
+// @route   GET api/achievements/:id
+// @desc    Get one entry by ID
+// @access  Public
+router.get('/:id', getAchievementById);
 
 // @route   POST api/achievements
 // @desc    Create an achievement

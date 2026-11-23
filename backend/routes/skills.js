@@ -1,27 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
-const multer = require('multer');
-const path = require('path');
+const upload = require('../middleware/upload');
 const {
   getAllSkills,
   getSkillsByCategory,
+  getSkillById,
   createSkill,
   updateSkill,
   deleteSkill
 } = require('../controllers/skillController');
-
-// Set up multer for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/');
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname));
-  }
-});
-
-const upload = multer({ storage: storage });
 
 // @route   GET api/skills
 // @desc    Get all skills
@@ -32,6 +20,11 @@ router.get('/', getAllSkills);
 // @desc    Get skills by category
 // @access  Public
 router.get('/category/:category', getSkillsByCategory);
+
+// @route   GET api/skills/:id
+// @desc    Get one entry by ID
+// @access  Public
+router.get('/:id', getSkillById);
 
 // @route   POST api/skills
 // @desc    Create a skill

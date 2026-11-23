@@ -1,4 +1,6 @@
 const Demo = require('../models/Demo');
+const handleError = require('../middleware/handleError');
+const toList = require('../utils/toList');
 
 // Get all demos
 exports.getAllDemos = async (req, res) => {
@@ -6,8 +8,7 @@ exports.getAllDemos = async (req, res) => {
     const demos = await Demo.find().populate('project', 'title').sort({ createdAt: -1 });
     res.json(demos);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };
 
@@ -22,15 +23,14 @@ exports.createDemo = async (req, res) => {
       type,
       src,
       project: project || null,
-      tags: tags ? tags.split(',').map(tag => tag.trim()) : [],
+      tags: toList(tags),
       icon: req.file ? `/uploads/${req.file.filename}` : ''
     });
 
     const demo = await newDemo.save();
     res.json(demo);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };
 
@@ -48,7 +48,7 @@ exports.updateDemo = async (req, res) => {
       type,
       src,
       project: project || null,
-      tags: tags ? tags.split(',').map(tag => tag.trim()) : []
+      tags: toList(tags)
     };
 
     if (req.file) {
@@ -58,13 +58,12 @@ exports.updateDemo = async (req, res) => {
     demo = await Demo.findByIdAndUpdate(
       req.params.id,
       { $set: demoFields },
-      { new: true }
+      { new: true, runValidators: true }
     );
 
     res.json(demo);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };
 
@@ -77,7 +76,6 @@ exports.deleteDemo = async (req, res) => {
     await Demo.findByIdAndDelete(req.params.id);
     res.json({ msg: 'Demo removed' });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };

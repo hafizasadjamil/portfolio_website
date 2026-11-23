@@ -1,59 +1,60 @@
 const nodemailer = require('nodemailer');
 const validator = require('validator');
 const Message = require('../models/Message');
+const handleError = require('../middleware/handleError');
+
+const MAX_LENGTH = { name: 100, email: 200, subject: 200, message: 5000 };
+
+const sendNotification = async ({ name, email, subject, message }) => {
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS,
+    },
+  });
+
+  // Gmail only sends as the account owner, so the visitor goes in replyTo.
+  await transporter.sendMail({
+    from: { name: 'Portfolio Contact', address: process.env.EMAIL_USER },
+    replyTo: { name, address: email },
+    to: process.env.EMAIL_USER,
+    subject: `Portfolio Contact: ${subject}`,
+    text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
+  });
+};
 
 // Send a contact message
 exports.sendMessage = async (req, res) => {
-  const { name, email, subject, message } = req.body;
-
-  // Validate input
-  if (!name || !email || !subject || !message) {
-    return res.status(400).json({ msg: 'Please enter all fields' });
+  const fields = {};
+  for (const key of Object.keys(MAX_LENGTH)) {
+    const value = req.body[key];
+    if (typeof value !== 'string' || !value.trim()) {
+      return res.status(400).json({ msg: 'Please enter all fields' });
+    }
+    if (value.length > MAX_LENGTH[key]) {
+      return res.status(400).json({ msg: `Your ${key} is too long (max ${MAX_LENGTH[key]} characters)` });
+    }
+    fields[key] = key === 'message' ? value.trim() : value.replace(/[\r\n]+/g, ' ').trim();
   }
 
-  if (!validator.isEmail(email)) {
+  if (!validator.isEmail(fields.email)) {
     return res.status(400).json({ msg: 'Please enter a valid email' });
   }
 
   try {
-    // Save message to database
-    const newMessage = new Message({
-      name,
-      email,
-      subject,
-      message,
-    });
+    await new Message(fields).save();
 
-    await newMessage.save();
-
-    // Send email notification only if credentials are provided
+    // The message is already saved, so a slow or failing mail server must not hold up the reply.
     if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-      const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS,
-        },
+      sendNotification(fields).catch(err => {
+        console.error('Email notification failed, but message saved to DB:', err.message);
       });
-
-      const mailOptions = {
-        from: `"${name}" <${email}>`,
-        to: process.env.EMAIL_USER,
-        subject: `Portfolio Contact: ${subject}`,
-        text: `Name: ${name}\nEmail: ${email}\n\nMessage:\n${message}`,
-      };
-
-      try {
-        await transporter.sendMail(mailOptions);
-      } catch (mailErr) {
-        console.error('Email notification failed, but message saved to DB:', mailErr.message);
-      }
     }
 
     res.json({ msg: 'Message sent successfully' });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };
 
@@ -63,8 +64,7 @@ exports.getAllMessages = async (req, res) => {
     const messages = await Message.find().sort({ createdAt: -1 });
     res.json(messages);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };
 
@@ -80,13 +80,12 @@ exports.markMessageAsRead = async (req, res) => {
     message = await Message.findByIdAndUpdate(
       req.params.id,
       { $set: { read: true } },
-      { new: true }
+      { new: true, runValidators: true }
     );
 
     res.json(message);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };
 
@@ -103,7 +102,6 @@ exports.deleteMessage = async (req, res) => {
 
     res.json({ msg: 'Message removed' });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };

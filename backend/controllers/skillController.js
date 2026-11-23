@@ -1,4 +1,5 @@
 const Skill = require('../models/Skill');
+const handleError = require('../middleware/handleError');
 
 // Get all skills
 exports.getAllSkills = async (req, res) => {
@@ -6,8 +7,7 @@ exports.getAllSkills = async (req, res) => {
     const skills = await Skill.find().sort({ createdAt: -1 });
     res.json(skills);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };
 
@@ -17,8 +17,20 @@ exports.getSkillsByCategory = async (req, res) => {
     const skills = await Skill.find({ category: req.params.category }).sort({ createdAt: -1 });
     res.json(skills);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
+  }
+};
+
+// Get skill by ID
+exports.getSkillById = async (req, res) => {
+  try {
+    const item = await Skill.findById(req.params.id);
+    if (!item) {
+      return res.status(404).json({ msg: 'Skill not found' });
+    }
+    res.json(item);
+  } catch (err) {
+    handleError(err, res);
   }
 };
 
@@ -46,8 +58,7 @@ exports.createSkill = async (req, res) => {
     const skill = await newSkill.save();
     res.json(skill);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };
 
@@ -79,13 +90,12 @@ exports.updateSkill = async (req, res) => {
     skill = await Skill.findByIdAndUpdate(
       req.params.id,
       { $set: skillFields },
-      { new: true }
+      { new: true, runValidators: true }
     );
 
     res.json(skill);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };
 
@@ -102,7 +112,6 @@ exports.deleteSkill = async (req, res) => {
 
     res.json({ msg: 'Skill removed' });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };

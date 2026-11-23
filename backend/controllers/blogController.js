@@ -1,4 +1,6 @@
 const Blog = require('../models/Blog');
+const handleError = require('../middleware/handleError');
+const toList = require('../utils/toList');
 
 // Get all published blog posts
 exports.getAllBlogs = async (req, res) => {
@@ -6,8 +8,7 @@ exports.getAllBlogs = async (req, res) => {
     const blogs = await Blog.find({ published: true }).sort({ createdAt: -1 });
     res.json(blogs);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };
 
@@ -17,22 +18,33 @@ exports.getAllBlogsAdmin = async (req, res) => {
     const blogs = await Blog.find().sort({ createdAt: -1 });
     res.json(blogs);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };
 
-// Get blog post by slug
-exports.getBlogBySlug = async (req, res) => {
+// Get one blog post by ID (including unpublished)
+exports.getBlogByIdAdmin = async (req, res) => {
   try {
-    const blog = await Blog.findOne({ slug: req.params.slug });
+    const blog = await Blog.findById(req.params.id);
     if (!blog) {
       return res.status(404).json({ msg: 'Blog post not found' });
     }
     res.json(blog);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
+  }
+};
+
+// Get published blog post by slug
+exports.getBlogBySlug = async (req, res) => {
+  try {
+    const blog = await Blog.findOne({ slug: req.params.slug, published: true });
+    if (!blog) {
+      return res.status(404).json({ msg: 'Blog post not found' });
+    }
+    res.json(blog);
+  } catch (err) {
+    handleError(err, res);
   }
 };
 
@@ -47,15 +59,14 @@ exports.createBlog = async (req, res) => {
       content,
       excerpt,
       featuredImage: req.file ? `/uploads/${req.file.filename}` : '',
-      tags: tags ? tags.split(',').map(item => item.trim()) : [],
+      tags: toList(tags),
       published: published === 'true'
     });
     
     const blog = await newBlog.save();
     res.json(blog);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };
 
@@ -75,7 +86,7 @@ exports.updateBlog = async (req, res) => {
       slug,
       content,
       excerpt,
-      tags: tags ? tags.split(',').map(item => item.trim()) : [],
+      tags: toList(tags),
       published: published === 'true',
       updatedAt: Date.now()
     };
@@ -87,13 +98,12 @@ exports.updateBlog = async (req, res) => {
     blog = await Blog.findByIdAndUpdate(
       req.params.id,
       { $set: blogFields },
-      { new: true }
+      { new: true, runValidators: true }
     );
     
     res.json(blog);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };
 
@@ -110,7 +120,6 @@ exports.deleteBlog = async (req, res) => {
     
     res.json({ msg: 'Blog post removed' });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    handleError(err, res);
   }
 };

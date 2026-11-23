@@ -1,21 +1,24 @@
 const jwt = require('jsonwebtoken');
-require('dotenv').config();
 
+// Every protected route in this app is an admin route.
 module.exports = function (req, res, next) {
-  // Get token from header
   const token = req.header('x-auth-token');
 
-  // Check if not token
   if (!token) {
     return res.status(401).json({ msg: 'No token, authorization denied' });
   }
 
-  // Verify token
+  let decoded;
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded.user;
-    next();
+    decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
   } catch (err) {
-    res.status(401).json({ msg: 'Token is not valid' });
+    return res.status(401).json({ msg: 'Token is not valid' });
   }
+
+  if (decoded.user?.role !== 'admin') {
+    return res.status(403).json({ msg: 'Admin access required' });
+  }
+
+  req.user = decoded.user;
+  next();
 };
